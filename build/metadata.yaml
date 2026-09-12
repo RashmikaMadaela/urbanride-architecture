@@ -1,0 +1,17 @@
+---
+title: "UrbanRide — Architecture Design Document"
+subtitle: "Scalable Microservices Backend for a Global Ride-Hailing Platform"
+author:
+  - "[[ Member 1 ]]"
+  - "[[ Member 2 ]]"
+  - "[[ Member 3 ]]"
+  - "[[ Member 4 ]]"
+  - "[[ Member 5 ]]"
+date: "13 September 2026"
+geometry: margin=2.5cm
+fontsize: 11pt
+linkcolor: blue
+toc: true
+toc-depth: 3
+numbersections: false
+---

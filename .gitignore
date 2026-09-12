@@ -1,0 +1,18 @@
+# Build outputs
+build/*.pdf
+build/*.docx
+build/merged.md
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# Office temp files
+~$*
