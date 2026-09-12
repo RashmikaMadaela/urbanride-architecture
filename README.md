@@ -45,6 +45,8 @@ Replace `[[ name ]]` with actual names before the first commit.
 - **M2 → M4 handoff matters:** if M2 changes an assumption (ride duration, ping interval, driver count), M4's entire cost table shifts. Say so out loud when a number moves.
 - **Content freeze Sunday 8:30pm.** Anything new after that goes in "future work" or gets dropped.
 - **Target submission 10:00pm**, not midnight.
+- **Before writing anything, read [DECISIONS.md](DECISIONS.md).**
+- It has the canonical service names and every locked decision.
 
 ### Jointly owned
 
