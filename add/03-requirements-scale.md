@@ -7,7 +7,7 @@
 
 UrbanRide must support the following core capabilities:
 
-- **Ride requesting** — riders submit pickup and destination coordinates; the system finds and assigns the nearest suitable driver within 500ms.
+- **Ride requesting** — riders submit pickup and destination coordinates; the system finds and assigns the best-ranked available driver by road-network ETA within 500ms.
 - **Real-time driver tracking** — active drivers stream GPS pings every 4 seconds; riders see live driver position updates during en-route and in-progress states.
 - **Driver–rider matching** — the Matching Engine selects the optimal available driver using a two-stage geospatial + road-network ranking process.
 - **ETA computation** — the Routing Service calculates road-network travel time from each candidate driver to the rider pickup point.
@@ -20,7 +20,7 @@ UrbanRide must support the following core capabilities:
 
 | Constraint | Target |
 |---|---|
-| Throughput | 1,000,000 completed rides/day; peak ~60 ride requests/sec; peak ~25,000 driver location writes/sec |
+| Throughput | 1,000,000 completed rides/day; peak ~60 ride requests/sec; peak ~19,000 driver location writes/sec (design ceiling 25,000/sec, see §3.3) |
 | Latency | < 500ms end-to-end for the ride matching transaction (high-frequency path) |
 | Burst tolerance | Absorb sudden 5× demand spikes (weather events, concerts) without dropping requests or cascading failures |
 | Cost | < 10 LKR per completed ride (cloud infrastructure and platform operating cost only) |
