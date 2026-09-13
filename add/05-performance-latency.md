@@ -127,16 +127,12 @@ At resolution 9, cells are ~0.1 km². Snapping to res-9 collapses thousands of n
 **Layer 3: Haversine straight-line fallback.**
 If OSRM is unavailable or its response breaches a 100ms timeout (enforced by the Envoy sidecar circuit breaker), the Matching Engine falls back to straight-line (Haversine) distance ranking. Match quality degrades, since a driver across a river may be selected, but the ride request completes and availability is preserved. This is an explicit availability-over-quality trade-off, taken consciously.
 
----
-
 ![C4 Level 3, component view of the Matching Engine. Shows the internal components of the Matching Engine: the Request Handler receives ride requests from the API Gateway via gRPC; the H3 Indexer converts rider coordinates to cell IDs and computes K-ring expansion; the Redis Candidate Fetcher performs pipelined SMEMBERS queries; the ETA Client calls the Routing Service (with the grid-snapped Redis cache in front and the Haversine fallback path); the Ranking Module sorts candidates by road-network travel time; and the Assignment CAS Module atomically claims the selected driver in Redis.](../diagrams/c4-03-component-matching.png){width=100%}
 
 <!-- DIAGRAM 3 | OWNER: M2 | FILE: diagrams/c4-03-component-matching.png
      Internals: request handler -> H3 indexer -> Redis candidate fetcher ->
      ETA client (with cache + fallback) -> ranking module -> assignment CAS module.
      Include the fallback path. -->
-
----
 
 ![End-to-end ride request sequence. Annotated sequence diagram showing the full ride request flow from Rider through API Gateway → Matching Engine → Redis → Routing Service (OSRM) → Trip Management Service → Billing Service → Notification Service, with latency budget figures at each hop.](../diagrams/seq-01-ride-request.png){height=20cm}
 

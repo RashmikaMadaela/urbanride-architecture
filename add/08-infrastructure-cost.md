@@ -156,8 +156,6 @@ These are scenario estimates based on the assumptions in Appendix A. The key con
 
 **Storage tiering.** The tiering mechanism is specified in §6.3 and is not restated here. Its cost effect is what matters to this section: only the last 90 days of trip records stay on Multi-AZ PostgreSQL, and the remaining roughly 640 GB of the annual 730 GB sits on S3 Standard-IA or Glacier Instant Retrieval at a small fraction of the hot-storage rate. Without tiering, the RDS line item would grow by approximately 730 GB every year for data that is almost never read after its first week.
 
----
-
 ![Monthly infrastructure spend by component. The model shows that routing, map tiles and egress are the dominant variable-cost categories.](../diagrams/cost-01-breakdown.png){width=100%}
 
 <!-- DIAGRAM 8 | OWNER: M4 | FILE: diagrams/cost-01-breakdown.png

@@ -74,15 +74,11 @@ The geo-index is only a candidate source, not a reservation system. Assignment u
 
 Surge is eventually consistent, so the live multiplier may change between fare estimation and confirmation. Fare estimation therefore creates a `quote_id` containing the base fare and multiplier, stores it in Redis with a 60-second TTL, and returns it to the rider. The booking request carries that ID, and the Billing Service charges the pinned multiplier. An expired quote must be re-quoted before confirmation. This gives the rider price certainty while bounding our exposure to adverse surge movement.
 
----
-
 ![Trip lifecycle state machine. The authoritative lifecycle progresses from `Requested` through `Matched`, `DriverEnRoute`, `InProgress`, and `Completed`, with cancellation and payment-failure exits.](../diagrams/state-01-trip-lifecycle.png){width=100%}
 
 <!-- DIAGRAM 5 | OWNER: M3 | FILE: diagrams/state-01-trip-lifecycle.png
      Requested -> Matched -> DriverEnRoute -> InProgress -> Completed,
      plus Cancelled and PaymentFailed branches. -->
-
----
 
 ![Booking Saga and compensating transactions. Trip Management Service orchestrates the booking steps; failed reservations or payment authorisation invoke the listed compensations, with payment authorisation marked as the pivot.](../diagrams/saga-01-booking.png){width=100%}
 

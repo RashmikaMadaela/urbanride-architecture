@@ -135,16 +135,12 @@ because `Billing Service` owns its database outright, we can choose to run it Mu
 consistency. A shared store would force one consistency model onto workloads that need different
 ones.
 
----
-
 ![C4 Level 1, System Context. UrbanRide as a single system, showing the two classes of user and the four external systems it depends on. Self-hosting routing on OpenStreetMap data, rather than calling a commercial maps API per request, is the decision that keeps the platform inside the 10 LKR per ride ceiling (§8.2).](../diagrams/c4-01-context.png){width=100%}
 
 <!-- DIAGRAM 1 | OWNER: M1 | FILE: diagrams/c4-01-context.png
      Shows: UrbanRide as one box; external actors = Rider, Driver, Payment Gateway,
      SMS Provider, Push Notification Service, OpenStreetMap data source.
      Keep deliberately simple - this is for non-technical stakeholders. -->
-
----
 
 ![C4 Level 2, Container. All ten services with their data stores and the protocol on every connection. Two paths are worth tracing. The booking path runs from the rider through `API Gateway` to `Matching Engine`, then by gRPC to `Routing Service` and `Trip Management Service`. The location firehose enters over WebSocket and is decoupled from every consumer by the `driver.location` topic on `Kafka`.](../diagrams/c4-02-container.png){width=100%}
 
