@@ -1,0 +1,23 @@
+digraph ResilienceLayers {
+  graph [rankdir=LR, bgcolor="white", pad="0.3", nodesep="0.55", ranksep="0.8", labelloc="t", label="UrbanRide Resilience Layers", fontname="Arial", fontsize=18];
+  node [shape=box, style="rounded,filled", fillcolor="#DCECF8", color="#24557A", fontname="Arial", fontsize=10, margin="0.16,0.09"];
+  edge [color="#24557A", fontname="Arial", fontsize=9, arrowsize=0.75];
+  client [label="Rider / Driver\nclients", fillcolor="#FFF1CC", color="#9A6A00"];
+  edge_layer [label="API Gateway / Edge\nRate limiter\nToken bucket + load shedding", fillcolor="#E2F2E8", color="#2E6B43"];
+  mesh [label="Envoy service mesh\nCircuit breakers\nTimeouts + bulkheads", fillcolor="#E2F2E8", color="#2E6B43"];
+  service [label="Core services\nMatching / Trip / Billing"];
+  kafka [label="Kafka buffer\nBackpressure\nConsumer lag autoscaling", fillcolor="#E2F2E8", color="#2E6B43"];
+  dlq [label="Retry policy\nExponential backoff\nDead-letter topics", fillcolor="#FCE8E6", color="#A33A32"];
+  data [label="Redis + PostgreSQL\nRebuildable index + durable state", fillcolor="#E2F2E8", color="#2E6B43"];
+  fallback [label="Graceful degradation\nHaversine ETA fallback", fillcolor="#FCE8E6", color="#A33A32"];
+  client -> edge_layer [label="HTTPS / WebSocket"];
+  edge_layer -> mesh [label="allowed request"];
+  edge_layer -> kafka [label="events / burst buffer"];
+  mesh -> service [label="bounded gRPC"];
+  service -> kafka [label="async events"];
+  service -> data [label="bounded data calls"];
+  kafka -> dlq [label="after max retries", color="#A33A32"];
+  mesh -> fallback [label="upstream timeout", color="#A33A32"];
+  fallback -> service [label="reduced match quality", color="#A33A32", style=dashed];
+  subgraph cluster_legend { label="Failure containment path"; color="#CCCCCC"; fontsize=9; legend1 [label="Normal protection", fillcolor="#E2F2E8", color="#2E6B43"]; legend2 [label="Degraded / isolated path", fillcolor="#FCE8E6", color="#A33A32"]; }
+}

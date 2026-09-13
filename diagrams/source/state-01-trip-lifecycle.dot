@@ -1,0 +1,22 @@
+digraph TripLifecycle {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.55", ranksep="0.8", labelloc="t", label="UrbanRide Trip Lifecycle", fontname="Arial", fontsize=18];
+  node [shape=box, style="rounded,filled", fillcolor="#E8F1FA", color="#24557A", fontname="Arial", fontsize=12, margin="0.18,0.10"];
+  edge [color="#24557A", fontname="Arial", fontsize=10, arrowsize=0.8];
+  requested [label="Requested"];
+  matched [label="Matched"];
+  enroute [label="DriverEnRoute"];
+  progress [label="InProgress"];
+  completed [label="Completed", fillcolor="#E2F2E8", color="#2E6B43"];
+  cancelled [label="Cancelled", fillcolor="#FCE8E6", color="#A33A32"];
+  payment [label="PaymentFailed", fillcolor="#FCE8E6", color="#A33A32"];
+  requested -> matched;
+  matched -> enroute;
+  enroute -> progress;
+  progress -> completed;
+  requested -> cancelled [label=" rider/timeout"];
+  matched -> cancelled [label=" rider/timeout"];
+  enroute -> cancelled [label=" cancellation"];
+  progress -> cancelled [label=" cancellation"];
+  matched -> payment [label=" payment rejected"];
+  payment -> requested [label=" retry payment / re-match", style=dashed];
+}

@@ -1,0 +1,19 @@
+digraph BookingSaga {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.6", ranksep="0.8", labelloc="t", label="UrbanRide Booking Saga", fontname="Arial", fontsize=18];
+  node [shape=box, style="rounded,filled", fillcolor="#E8F1FA", color="#24557A", fontname="Arial", fontsize=11, margin="0.18,0.10"];
+  edge [color="#24557A", fontname="Arial", fontsize=9, arrowsize=0.8];
+  trip1 [label="1. Create Requested trip\nTrip Management"];
+  match [label="2. Reserve driver\nMatching Engine"];
+  pay [label="3. Authorise payment\nBilling & Payments\nPIVOT", fillcolor="#FFF1CC", color="#9A6A00"];
+  trip2 [label="4. Confirm Matched trip\nTrip Management"];
+  notify [label="5. Notify rider + driver\nNotifications", fillcolor="#E2F2E8", color="#2E6B43"];
+  cancel [label="Compensate: mark Cancelled\nTrip Management", fillcolor="#FCE8E6", color="#A33A32"];
+  release [label="Compensate: release driver\nMatching Engine", fillcolor="#FCE8E6", color="#A33A32"];
+  void [label="Compensate: void authorisation\nBilling & Payments", fillcolor="#FCE8E6", color="#A33A32"];
+  rematch [label="Compensate: re-match\nTrip Management", fillcolor="#FCE8E6", color="#A33A32"];
+  trip1 -> match -> pay -> trip2 -> notify;
+  trip1 -> cancel [label=" create fails", color="#A33A32"];
+  match -> release [label=" reserve fails", color="#A33A32"];
+  pay -> void [label=" confirm fails", color="#A33A32"];
+  trip2 -> rematch [label=" state update fails", color="#A33A32"];
+}
