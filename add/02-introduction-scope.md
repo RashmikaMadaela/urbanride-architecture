@@ -40,9 +40,8 @@ requirements do not ask us to solve; the migration path is documented as future 
 
 The design assumes drivers report position every 4 seconds, that the average ride lasts
 approximately 20 minutes, and that a driver completes roughly 16 rides per working day. These
-assumptions propagate into every capacity figure in the document, so each is recorded with its
-status (verified, derived, or estimated) in Appendix A. Anything still unverified is marked as
-such rather than presented as fact.
+assumptions propagate into every capacity figure in the document, so each is recorded in
+Appendix A with its status: given, locked, derived, or a modelling assumption.
 
 On the cost constraint:
 

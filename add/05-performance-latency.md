@@ -58,7 +58,7 @@ The following steps execute on the Matching Engine for every ride request:
 | **Total** | **~210ms** |
 | **Headroom to 500ms** | **~290ms** |
 
-The ~290ms headroom is significant: the system can sustain a **2× latency degradation on any single step** and still meet the 500ms SLA. This is the correct answer to a panel question about "what happens under load": the headroom absorbs it, and we do not need to claim tighter numbers than the arithmetic supports.
+The ~290ms headroom is significant: the system can sustain a **2× latency degradation on any single step** and still meet the 500ms SLA. Under load the headroom absorbs the degradation, and the budget above deliberately claims no tighter figure than the arithmetic supports.
 
 ### 5.4 Trade-off: approximation vs exactness
 
@@ -69,7 +69,7 @@ We accept this trade-off for two reasons:
 1. **K-ring expansion catches most cases.** If the boundary driver is genuinely the best option, K-ring(2) will include their cell within the same request. The approximation error is bounded and predictable.
 2. **The alternative is unaffordable.** Computing straight-line distance to every online driver is O(n). At 75,000 concurrent drivers, this is 75,000 comparisons per ride request, at 60 requests/sec peak. That is 4.5 million floating-point comparisons per second before any ETA logic runs, on the latency-critical path. H3 reduces this to a handful of set lookups.
 
-The panel follow-up is likely: *"what if a driver is just over the hex line?"* The answer is K-ring(2) covers it within the same 500ms budget, and road-network ETA ranking in step 5 ensures the final assignment is by travel time, not by hex geometry.
+A driver sitting just over a hexagon boundary is therefore not lost: K-ring(2) reaches them within the same 500ms budget, and the road-network ETA ranking in step 5 ensures the final assignment is decided by travel time rather than by hex geometry.
 
 ### 5.5 Two-stage matching
 
@@ -104,7 +104,7 @@ A 3-broker Kafka cluster is sufficient at our scale. Uber's multi-region Kafka t
 
 During this period, **the system degrades in freshness, not in availability.** Driver positions in Redis may be 15–20 seconds stale instead of 4 seconds. Ride matching continues. No requests are dropped. No services cascade. When the lag clears, freshness returns to normal automatically.
 
-This single mechanism answers two rubric requirements, burst handling and backpressure, and is the strongest argument against a direct-write architecture at this scale.
+This single mechanism delivers both burst absorption and backpressure, and is the strongest argument against a direct-write architecture at this scale.
 
 ### 5.8 Protecting the Routing Service
 

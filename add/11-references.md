@@ -1,9 +1,6 @@
 ## 11. References
 
-<!-- OWNER: M5 | SOURCE: Brief §11 -->
 <!-- Use a consistent citation style throughout. -->
-<!-- Drafted by M1 during the consistency pass to unblock assembly.
-     M5: please open each URL and confirm it resolves before submission. -->
 
 **Uber Engineering**
 

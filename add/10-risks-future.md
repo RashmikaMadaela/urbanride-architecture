@@ -30,7 +30,7 @@ index, and it is why the index is designed to be rebuildable rather than durable
 rides per driver per day, outbound data volume per ride, and the LKR/USD exchange rate all feed
 the capacity and cost models, and none comes from a running system. Appendix A records each with
 its status. The exchange rate and the local bulk SMS rate are the two that most directly move the
-cost result and should be re-verified before the figures are relied upon commercially. The
+cost result, and both would need a contracted figure before the model could be relied on commercially. The
 architecture is not sensitive to moderate error in these, because the infrastructure result sits at
 roughly 1.7% of the ceiling and even a large proportional error does not change the conclusion,
 but the specific numbers would move.

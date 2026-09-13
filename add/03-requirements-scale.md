@@ -34,7 +34,7 @@ UrbanRide must support the following core capabilities:
 | Completed rides/day | Given | **1,000,000** |
 | Average ride request rate | 1M ÷ 86,400 s | **~12 /sec** |
 | Peak ride request rate | 5× burst assumption | **~60 /sec** |
-| Ride duration (assumed) | Typical urban average ⚠️ | ~20 min |
+| Ride duration (assumed) | Typical urban average | ~20 min |
 | Total ride-minutes/day | 1M × 20 | 20,000,000 |
 | Average concurrent active trips | 20M ÷ 1,440 min | **~14,000** |
 | Peak concurrent active trips | ~2× average | **~30,000** |

@@ -16,6 +16,10 @@ toc-depth: 3
 numbersections: false
 colorlinks: true
 header-includes:
+  # Title page, then the contents on their own page, then the body.
+  - \usepackage{etoolbox}
+  - \pretocmd{\tableofcontents}{\clearpage}{}{}
+  - \apptocmd{\tableofcontents}{\clearpage}{}{}
   # nobottomtitles* keeps a heading from being stranded at the foot of a page
   # with its content pushed to the next one.
   - \usepackage[nobottomtitles*]{titlesec}
