@@ -1,0 +1,93 @@
+digraph SeqRideRequest {
+  graph [rankdir=LR, bgcolor="white", pad="0.35", nodesep="0.50", ranksep="0.70", labelloc="t",
+         label="UrbanRide — End-to-end ride request sequence\nAnnotated with latency budget from §5.3  (total ~210ms, headroom ~290ms to 500ms SLA)",
+         fontname="Arial", fontsize=16, splines=false];
+  node [shape=box, style="rounded,filled", fillcolor="#E8F1FA", color="#24557A", fontname="Arial", fontsize=10, margin="0.16,0.09"];
+  edge [color="#24557A", fontname="Arial", fontsize=9, arrowsize=0.7];
+
+  // ---------- Lifeline nodes (left to right = time order) ----------
+  rider    [label="Rider App\n[Client]",               fillcolor="#E2F2E8", color="#2E6B43"];
+  gateway  [label="API Gateway\n[Edge]",               fillcolor="#FFF1CC", color="#9A6A00"];
+  matching [label="Matching Engine\n[Component]"];
+  redis    [label="Redis\n[Geo-index + Cache]",        shape=cylinder, fillcolor="#FCE8E6", color="#A33A32"];
+  routing  [label="Routing Service\n[OSRM]"];
+  tripmgmt [label="Trip Management\nService"];
+  billing  [label="Billing Service"];
+  notify   [label="Notification\nService"];
+  driver   [label="Driver App\n[Client]",              fillcolor="#E2F2E8", color="#2E6B43"];
+
+  { rank=same; rider; gateway; matching; redis; routing; tripmgmt; billing; notify; driver; }
+
+  // ---------- Step labels as invisible intermediate nodes ----------
+  // We model the sequence as a top-down chain with annotated edges.
+  // Graphviz does not natively render sequence diagrams, so we use a
+  // ranked chain of step nodes connected by the actors.
+
+  s1  [label="① POST /rides\l   REST/HTTPS", shape=plaintext, fillcolor=none, color=none];
+  s2  [label="② Auth + rate-limit check\l   ~20ms total (gateway auth + routing)", shape=plaintext, fillcolor=none, color=none];
+  s3  [label="③ gRPC RideRequest\l   → Matching Engine", shape=plaintext, fillcolor=none, color=none];
+  s4  [label="④ lat/lng → H3 res-8 cell\l   K-ring(1) 7 cells  < 1ms", shape=plaintext, fillcolor=none, color=none];
+  s5  [label="⑤ SMEMBERS (pipelined)\l   ~2–5ms | returns ~30 driver IDs", shape=plaintext, fillcolor=none, color=none];
+  s6  [label="⑥ gRPC table(30 origins)\l   OSRM many-to-one ETA  ~50–80ms", shape=plaintext, fillcolor=none, color=none];
+  s7  [label="⑦ duration_sec[] ranked list", shape=plaintext, fillcolor=none, color=none];
+  s8  [label="⑧ Surge multiplier lookup\l   GET surge:h3:<cell>  ~5ms", shape=plaintext, fillcolor=none, color=none];
+  s9  [label="⑨ gRPC CreateTrip (status=Requested)\l   PostgreSQL write  ~30ms", shape=plaintext, fillcolor=none, color=none];
+  s10 [label="⑩ Trip record created (trip_id)", shape=plaintext, fillcolor=none, color=none];
+  s11 [label="⑪ SET NX driver:assign → trip_id\l   atomic CAS  ~20ms", shape=plaintext, fillcolor=none, color=none];
+  s12 [label="⑫ gRPC UpdateTrip (status=Matched)", shape=plaintext, fillcolor=none, color=none];
+  s13 [label="⑬ Kafka trip.events → billing.authorise", shape=plaintext, fillcolor=none, color=none];
+  s14 [label="⑭ REST/HTTPS — payment gateway\l   Authorise hold", shape=plaintext, fillcolor=none, color=none];
+  s15 [label="⑮ Kafka trip.events → notify\l   Push: driver offer + rider ETA", shape=plaintext, fillcolor=none, color=none];
+  s16 [label="⑯ WebSocket dispatch offer", shape=plaintext, fillcolor=none, color=none];
+  s17 [label="⑰ WebSocket live driver position\l   to Rider App", shape=plaintext, fillcolor=none, color=none];
+
+  // ---------- Sequence flow ----------
+  rider    -> s1  [arrowhead=none, color="#2E6B43"];
+  s1       -> gateway  [color="#2E6B43"];
+
+  gateway  -> s2  [arrowhead=none, color="#9A6A00"];
+  s2       -> s3  [arrowhead=none, style=invis];
+  s3       -> matching [color="#24557A"];
+
+  matching -> s4  [arrowhead=none];
+  s4       -> s5  [arrowhead=none];
+  s5       -> redis    [color="#A33A32"];
+  redis    -> s6  [arrowhead=none, color="#A33A32", label=" driver IDs"];
+  s6       -> routing  [color="#24557A"];
+  routing  -> s7  [arrowhead=none, color="#24557A"];
+  s7       -> s8  [arrowhead=none, style=invis];
+  s8       -> redis    [color="#A33A32", label=" GET surge"];
+
+  matching -> s9  [arrowhead=none];
+  s9       -> tripmgmt [color="#24557A"];
+  tripmgmt -> s10 [arrowhead=none, color="#24557A"];
+  s10      -> s11 [arrowhead=none, style=invis];
+  s11      -> redis    [color="#A33A32"];
+
+  tripmgmt -> s12 [arrowhead=none];
+  s12      -> s13 [arrowhead=none, style=invis];
+  s13      -> billing  [color="#9A6A00", label=" Kafka async"];
+  billing  -> s14 [arrowhead=none];
+
+  tripmgmt -> s15 [arrowhead=none];
+  s15      -> notify   [color="#9A6A00", label=" Kafka async"];
+  notify   -> s16 [arrowhead=none];
+  s16      -> driver   [color="#2E6B43"];
+  notify   -> s17 [arrowhead=none];
+  s17      -> rider    [color="#2E6B43"];
+
+  // ---------- Timing summary box ----------
+  timing [shape=note, fillcolor="#F5FAF7", color="#2E6B43", fontsize=9,
+          label="Latency summary\n① – ⑫ critical path: ~210ms\nHeadroom to 500ms SLA: ~290ms\n⑬ – ⑰ async (Kafka): off critical path"];
+
+  // ---------- Legend ----------
+  subgraph cluster_legend {
+    graph [label="Legend", fontname="Arial", fontsize=10, color="#9A9A9A", style="rounded", bgcolor="#FBFBFB", margin=8];
+    node [fontsize=9, margin="0.11,0.05"];
+    lg_sync  [label="Synchronous (gRPC / REST)"];
+    lg_async [label="Asynchronous (Kafka event)", fillcolor="#FFF1CC", color="#9A6A00"];
+    lg_redis [label="Redis read/write", fillcolor="#FCE8E6", color="#A33A32", shape=cylinder];
+    lg_sync -> lg_async -> lg_redis [style=invis];
+    { rank=same; lg_sync; lg_async; lg_redis; }
+  }
+}

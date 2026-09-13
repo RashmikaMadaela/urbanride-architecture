@@ -1,0 +1,73 @@
+digraph C4Component_Matching {
+  graph [rankdir=TB, bgcolor="white", pad="0.35", nodesep="0.40", ranksep="0.90", labelloc="t",
+         label="UrbanRide — C4 Level 3: Component view of the Matching Engine\nScope: internals of the Matching Engine container only",
+         fontname="Arial", fontsize=18, splines=true];
+  node [shape=box, style="rounded,filled", fillcolor="#E8F1FA", color="#24557A", fontname="Arial", fontsize=10, margin="0.16,0.09"];
+  edge [color="#24557A", fontname="Arial", fontsize=9, arrowsize=0.7];
+
+  // ---------- External callers (outside the Matching Engine) ----------
+  gateway  [label="API Gateway\n[external container]", fillcolor="#FFF1CC", color="#9A6A00"];
+  redis    [label="Redis\nH3 geo-index + assignments\n[external container]", shape=cylinder, fillcolor="#FCE8E6", color="#A33A32"];
+  routing  [label="Routing Service  [OSRM]\nRoad-network ETA\n[external container]", fillcolor="#E8F1FA", color="#24557A"];
+  trip     [label="Trip Management Service\n[external container]", fillcolor="#E8F1FA", color="#24557A"];
+
+  // ---------- Matching Engine boundary ----------
+  subgraph cluster_matching {
+    graph [label="Matching Engine  [Go service]", fontname="Arial", fontsize=13,
+           color="#24557A", style="rounded", bgcolor="#F0F5FC", margin=16];
+
+    rh  [label="Request Handler\nReceives ride-request via gRPC.\nValidates payload; forwards to H3 Indexer.", fontsize=10];
+    h3  [label="H3 Indexer\nConverts rider lat/lng → res-8 cell ID.\nComputes K-ring(1) → 7 cells;\nexpands to K-ring(2) → 19 cells\nif candidate count < 5.", fontsize=10];
+    rc  [label="Redis Candidate Fetcher\nPipelined SMEMBERS across K-ring cells.\nReturns 10–50 candidate driver IDs (~2–5 ms).", fontsize=10];
+    ec  [label="ETA Client\nCalls Routing Service via gRPC —\nOSRM table endpoint (30 origins, 1 call).\nChecks grid-snapped Redis cache first\n(key: H3 res-9 origin:dest, TTL 5 min).\nFalls back to Haversine if timeout > 100ms.", fontsize=10];
+    rm  [label="Ranking Module\nSorts candidates by road-network ETA.\nSelects top candidate.", fontsize=10];
+    ca  [label="Assignment CAS Module\nSET NX driver:{id}:assignment → trip_id.\nAtomic Redis compare-and-swap;\nprevents double-booking.\nDispatches offer to driver via WebSocket.", fontsize=10];
+  }
+
+  // ---------- Redis ETA cache (inside ETA Client's use) ----------
+  etacache [label="Redis\nETA cache  (res-9 grid-snapped keys)\n[external container — same Redis cluster]",
+            shape=cylinder, fillcolor="#FCE8E6", color="#A33A32"];
+
+  // ---------- Rank layers ----------
+  { rank=source; gateway; }
+  { rank=same; rh; }
+  { rank=same; h3; }
+  { rank=same; rc; }
+  { rank=same; ec; }
+  { rank=same; rm; }
+  { rank=same; ca; }
+  { rank=same; redis; etacache; routing; trip; }
+
+  // ---------- Happy path ----------
+  gateway -> rh  [label=" gRPC\l ride request\l"];
+  rh      -> h3  [label=" rider lat/lng"];
+  h3      -> rc  [label=" 7–19 H3 cell IDs"];
+  rc      -> redis [label=" SMEMBERS (pipelined)\l", color="#A33A32", fontcolor="#A33A32"];
+  redis   -> rc  [label=" driver ID sets\l", color="#A33A32", fontcolor="#A33A32"];
+  rc      -> ec  [label=" ~30 candidate\l driver IDs\l"];
+  ec      -> etacache [label=" GET route:res9:res9\l TTL 5 min\l", color="#A33A32", fontcolor="#A33A32", style=dashed];
+  ec      -> routing  [label=" gRPC — OSRM table\l 30 origins, 1 call\l 100ms timeout\l"];
+  routing -> ec  [label=" duration_sec[]\l", color="#24557A"];
+  ec      -> rm  [label=" ETA-annotated\l candidates\l"];
+  rm      -> ca  [label=" top candidate\l"];
+  ca      -> redis [label=" SET NX assign\l trip_id, TTL 30s\l", color="#A33A32", fontcolor="#A33A32"];
+  ca      -> trip  [label=" gRPC — create trip\l status = Matched\l"];
+
+  // ---------- Fallback path ----------
+  ec_fb [label="Haversine Fallback\n(straight-line rank)\nActivates when OSRM\ntimeout > 100ms.",
+         fillcolor="#FFF1CC", color="#9A6A00", fontsize=9];
+  ec -> ec_fb [label=" fallback\l", style=dashed, color="#9A6A00", fontcolor="#9A6A00"];
+  ec_fb -> rm [label=" degraded\l ranking\l", style=dashed, color="#9A6A00", fontcolor="#9A6A00"];
+
+  // ---------- Legend ----------
+  subgraph cluster_legend {
+    graph [label="Legend", fontname="Arial", fontsize=10, color="#9A9A9A", style="rounded", bgcolor="#FBFBFB", margin=8];
+    node [fontsize=9, margin="0.11,0.05"];
+    lg_comp [label="Component\n(inside Matching Engine)"];
+    lg_cont [label="External container\n(other service / store)", fillcolor="#FFF1CC", color="#9A6A00"];
+    lg_vol  [label="Volatile store\n(no persistence)", fillcolor="#FCE8E6", color="#A33A32", shape=cylinder];
+    lg_fb   [label="Fallback /\ndegraded path", fillcolor="#FFF1CC", color="#9A6A00"];
+    lg_comp -> lg_cont -> lg_vol -> lg_fb [style=invis];
+    { rank=same; lg_comp; lg_cont; lg_vol; lg_fb; }
+  }
+}
