@@ -58,7 +58,7 @@ not hidden inside another service's box.
 ### 4.3 Decomposition rationale
 
 <!-- Call out the non-obvious splits:
-     - Location Ingestion vs Driver Service (opposite write profiles)
+     - Location Ingestion Service vs Driver Service (opposite write profiles)
      - Billing isolated (separate blast radius) -->
 
 Most of the boundaries above are conventional. Three are not, and they are the ones worth

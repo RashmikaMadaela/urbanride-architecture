@@ -21,7 +21,7 @@
 <!-- Which services are CP, which are AP, and why.
      Cite Uber precedent: Ringpop is AP; surge favours freshness over consistency. -->
 
-Storage is selected per bounded context rather than imposed uniformly. Trip Management and Billing are CP: they prefer a clear failure during a partition to two conflicting authoritative records or a double charge. Location Ingestion and candidate matching are AP: a slightly stale driver position is acceptable because the next GPS ping arrives within 4 seconds, while refusing all matching during a brief inconsistency would harm availability. Surge Pricing also favours AP because freshness is more useful than a perfectly consistent multiplier. This follows Uber's documented precedent: Ringpop is AP, and surge pricing explicitly favours freshness and availability over consistency.
+Storage is selected per bounded context rather than imposed uniformly. Trip Management Service and Billing Service are CP: they prefer a clear failure during a partition to two conflicting authoritative records or a double charge. Location Ingestion Service and candidate matching are AP: a slightly stale driver position is acceptable because the next GPS ping arrives within 4 seconds, while refusing all matching during a brief inconsistency would harm availability. Surge Pricing Service also favours AP because freshness is more useful than a perfectly consistent multiplier. This follows Uber's documented precedent: Ringpop is AP, and surge pricing explicitly favours freshness and availability over consistency.
 
 ### 6.3 Storage tiering strategy
 
@@ -49,7 +49,7 @@ Partition-drop is preferable to CDC for archival because completed trips are imm
      hybrid choice; booking saga steps + compensations; pivot transaction;
      idempotency on trip_uuid -->
 
-Each service owns its database, so one ACID transaction cannot cover a booking. We use orchestration for the booking Saga because Trip Management must expose the current state and coordinate real compensations. Downstream reactions such as analytics, receipts, and driver earnings are choreographed from `TripCompleted` events. Every participant is idempotent and uses `trip_uuid` as its idempotency key; retries and duplicate events therefore become no-ops.
+Each service owns its database, so one ACID transaction cannot cover a booking. We use orchestration for the booking Saga because Trip Management Service must expose the current state and coordinate real compensations. Downstream reactions such as analytics, receipts, and driver earnings are choreographed from `TripCompleted` events. Every participant is idempotent and uses `trip_uuid` as its idempotency key; retries and duplicate events therefore become no-ops.
 
 | # | Step | Service | Compensation on failure |
 |---|---|---|---|
@@ -66,13 +66,13 @@ Step 3 is the pivot transaction. Once authorisation succeeds, the workflow moves
 <!-- Atomic Redis SET NX rather than a DB row lock; loser re-queries.
      This is how lock contention is designed out. -->
 
-The geo-index is only a candidate source, not a reservation system. Assignment uses an atomic Redis compare-and-set: `SET driver:{id}:assignment {trip_uuid} NX EX 30`. Only one simultaneous request wins. The loser discards that candidate, re-queries, and tries the next driver. This removes database row-lock contention from the hot path while Trip Management remains the authoritative record of the ride.
+The geo-index is only a candidate source, not a reservation system. Assignment uses an atomic Redis compare-and-set: `SET driver:{id}:assignment {trip_uuid} NX EX 30`. Only one simultaneous request wins. The loser discards that candidate, re-queries, and tries the next driver. This removes database row-lock contention from the hot path while Trip Management Service remains the authoritative record of the ride.
 
 ### 6.6 Surge quote pinning
 
 <!-- 60-second pinned quote so displayed fare = charged fare -->
 
-Surge is eventually consistent, so the live multiplier may change between fare estimation and confirmation. Fare estimation therefore creates a `quote_id` containing the base fare and multiplier, stores it in Redis with a 60-second TTL, and returns it to the rider. The booking request carries that ID, and Billing charges the pinned multiplier. An expired quote must be re-quoted before confirmation. This gives the rider price certainty while bounding our exposure to adverse surge movement.
+Surge is eventually consistent, so the live multiplier may change between fare estimation and confirmation. Fare estimation therefore creates a `quote_id` containing the base fare and multiplier, stores it in Redis with a 60-second TTL, and returns it to the rider. The booking request carries that ID, and the Billing Service charges the pinned multiplier. An expired quote must be re-quoted before confirmation. This gives the rider price certainty while bounding our exposure to adverse surge movement.
 
 ---
 
@@ -88,7 +88,7 @@ Surge is eventually consistent, so the live multiplier may change between fare e
 
 ![Booking saga with compensations](../diagrams/saga-01-booking.png)
 
-**Figure 6 - Booking Saga and compensating transactions.** Trip Management orchestrates the booking steps; failed reservations or payment authorisation invoke the listed compensations, with payment authorisation marked as the pivot.
+**Figure 6 - Booking Saga and compensating transactions.** Trip Management Service orchestrates the booking steps; failed reservations or payment authorisation invoke the listed compensations, with payment authorisation marked as the pivot.
 
 <!-- DIAGRAM 6 | OWNER: M3 | FILE: diagrams/saga-01-booking.png
      Happy path across services plus compensations on failure.

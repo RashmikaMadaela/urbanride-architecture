@@ -2,11 +2,11 @@
 title: "UrbanRide — Architecture Design Document"
 subtitle: "Scalable Microservices Backend for a Global Ride-Hailing Platform"
 author:
-  - "[[ Member 1 ]]"
-  - "[[ Member 2 ]]"
-  - "[[ Member 3 ]]"
-  - "[[ Member 4 ]]"
-  - "[[ Member 5 ]]"
+  - "Rashmika — Architecture Lead & Integrator"
+  - "Pamoth — Performance & Geospatial"
+  - "Lakshika — Data & Resilience"
+  - "[[ M4 name ]] — Cost & Infrastructure"
+  - "[[ M5 name ]] — Deck & Assembly"
 date: "13 September 2026"
 geometry: margin=2.5cm
 fontsize: 11pt

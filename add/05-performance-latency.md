@@ -92,21 +92,21 @@ This delivers most of the allocation quality of a full road-network spatial inde
 | `trip.events.dlq` | Failed consumers | Manual / automated retry processor | 3 | 30 days |
 | `billing.events` | Billing Service | Analytics, Reconciliation | 6 | 30 days |
 
-**Partition key for `driver.location` is the H3 cell ID.** This design decision has two consequences. First, all location updates for a given geographic area land on the same partition, preserving ordering within that area. Second, stateful windowed aggregation in the Surge Pricing pipeline (which computes per-hexagon demand over a rolling time window) can run without cross-partition joins — each Flink task sees a geographically coherent stream.
+**Partition key for `driver.location` is the H3 cell ID.** This design decision has two consequences. First, all location updates for a given geographic area land on the same partition, preserving ordering within that area. Second, stateful windowed aggregation in the Surge Pricing Service pipeline (which computes per-hexagon demand over a rolling time window) can run without cross-partition joins — each Flink task sees a geographically coherent stream.
 
 A 3-broker Kafka cluster is sufficient at our scale. Uber's multi-region Kafka tooling (uReplicator, uForwarder, Chaperone) exists to handle trillions of messages across global regions — we have ~1.6 billion messages per day on a handful of topics and have no justification to operate that infrastructure.
 
 ### 5.7 Backpressure & burst absorption
 
-**The 5× spike scenario:** a major event ends (concert, stadium match), thousands of riders simultaneously request rides within minutes. Without buffering, this spike hits Location Ingestion and the Matching Engine directly, causing database lock contention, connection pool exhaustion on PostgreSQL, and cascading timeouts across dependent services.
+**The 5× spike scenario:** a major event ends (concert, stadium match), thousands of riders simultaneously request rides within minutes. Without buffering, this spike hits the Location Ingestion Service and the Matching Engine directly, causing database lock contention, connection pool exhaustion on PostgreSQL, and cascading timeouts across dependent services.
 
-**With Kafka as the ingestion buffer, the failure mode changes entirely.** Location Ingestion publishes GPS pings to `driver.location`. Producers never block — Kafka absorbs the burst. Consumer lag grows as the downstream Geo-indexer falls behind. Autoscaling adds consumer instances (triggered by consumer lag metrics, not CPU). The lag drains over the next 1–2 minutes.
+**With Kafka as the ingestion buffer, the failure mode changes entirely.** The Location Ingestion Service publishes GPS pings to `driver.location`. Producers never block — Kafka absorbs the burst. Consumer lag grows as the downstream Geo-indexer falls behind. Autoscaling adds consumer instances (triggered by consumer lag metrics, not CPU). The lag drains over the next 1–2 minutes.
 
 During this period, **the system degrades in freshness, not in availability.** Driver positions in Redis may be 15–20 seconds stale instead of 4 seconds. Ride matching continues. No requests are dropped. No services cascade. When the lag clears, freshness returns to normal automatically.
 
 This single mechanism answers two rubric requirements — burst handling and backpressure — and is the strongest argument against a direct-write architecture at this scale.
 
-### 5.8 Protecting the Routing/ETA service
+### 5.8 Protecting the Routing Service
 
 OSRM is CPU-bound, stateful (holds the full OSM road graph in memory), and sits directly on the latency-critical matching path. It is the most load-sensitive component in the system. Three defensive layers protect it, in order of value:
 

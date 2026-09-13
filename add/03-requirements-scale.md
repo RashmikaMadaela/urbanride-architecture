@@ -14,7 +14,7 @@ UrbanRide must support the following core capabilities:
 - **Trip lifecycle management** — a ride progresses through defined states (`Requested → Matched → DriverEnRoute → InProgress → Completed`) with compensating transitions to `Cancelled` or `PaymentFailed` on failure.
 - **Surge pricing** — per-hexagon demand multipliers are computed in near-real time and applied to fare estimates before driver dispatch.
 - **Billing and payment** — fares are calculated on trip completion and processed through a third-party payment gateway with strong consistency guarantees.
-- **Notifications** — riders and drivers receive push notifications (with SMS fallback) at key trip state transitions.
+- **Notifications** — riders and drivers receive push notifications at key trip state transitions; SMS is reserved for login OTP only (see §8.7).
 
 ### 3.2 Non-functional requirements
 

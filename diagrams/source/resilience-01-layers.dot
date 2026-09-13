@@ -3,7 +3,7 @@ digraph ResilienceLayers {
   node [shape=box, style="rounded,filled", fillcolor="#DCECF8", color="#24557A", fontname="Arial", fontsize=10, margin="0.16,0.09"];
   edge [color="#24557A", fontname="Arial", fontsize=9, arrowsize=0.75];
   client [label="Rider / Driver\nclients", fillcolor="#FFF1CC", color="#9A6A00"];
-  edge_layer [label="API Gateway / Edge\nRate limiter\nToken bucket + load shedding", fillcolor="#E2F2E8", color="#2E6B43"];
+  edge_layer [label="API Gateway\nRate limiter\nToken bucket + load shedding", fillcolor="#E2F2E8", color="#2E6B43"];
   mesh [label="Envoy service mesh\nCircuit breakers\nTimeouts + bulkheads", fillcolor="#E2F2E8", color="#2E6B43"];
   service [label="Core services\nMatching / Trip / Billing"];
   kafka [label="Kafka buffer\nBackpressure\nConsumer lag autoscaling", fillcolor="#E2F2E8", color="#2E6B43"];
