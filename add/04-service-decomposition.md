@@ -10,7 +10,7 @@ becomes a service that owns its data outright. The test we applied to every cand
 whether the two halves would ever need to change, scale, or fail independently. Where the answer
 was yes, they were separated even when they appeared to belong to the same subject.
 
-That test matters here because the obvious decomposition — one service per noun — produces the
+That test matters here because the obvious decomposition, one service per noun, produces the
 wrong answer for a ride-hailing platform. "Driver" is a single noun that covers two workloads with
 nothing in common: a durable account record that changes a few times a week, and a stream of GPS
 coordinates arriving roughly 19,000 times a second that is worthless within seconds of arrival.
@@ -38,10 +38,10 @@ every diagram, and in the presentation. They are recorded in `DECISIONS.md`.
 
 | Service | Responsibility | Why separate | Data store |
 |---|---|---|---|
-| `API Gateway` | Terminates client connections, authenticates requests, enforces rate limits, routes to services, terminates rider and driver WebSockets | A single enforcement point for authentication and rate limiting; no service should have to re-implement either | None — stateless |
+| `API Gateway` | Terminates client connections, authenticates requests, enforces rate limits, routes to services, terminates rider and driver WebSockets | A single enforcement point for authentication and rate limiting; no service should have to re-implement either | None (stateless) |
 | `Rider Service` | Rider accounts, saved places, ride request intake | Read-heavy, low write volume, and a different scaling profile from drivers | `PostgreSQL` |
 | `Driver Service` | Driver profiles, vehicle records, online/offline state, document status | Slow-changing durable data that must survive a crash | `PostgreSQL` |
-| `Location Ingestion Service` | Consumes the GPS ping firehose, maintains the `H3` geospatial index of online drivers | Roughly 19,000 writes/sec of data that is disposable within seconds — the opposite durability requirement from `Driver Service` | `Redis`, no persistence |
+| `Location Ingestion Service` | Consumes the GPS ping firehose, maintains the `H3` geospatial index of online drivers | Roughly 19,000 writes/sec of data that is disposable within seconds, the opposite durability requirement from `Driver Service` | `Redis`, no persistence |
 | `Matching Engine` | Selects a driver for a ride request; candidate generation, ranking, and atomic assignment | Latency-critical and CPU-bound; must scale on p99 latency independently of everything else | `Redis` (reads) |
 | `Routing Service` | Road-network travel time and distance; self-hosted `OSRM` over OpenStreetMap data | Holds a large road graph in RAM and is the only CPU-bound component on the critical path; also the single largest cost decision in the design | In-memory OSM graph |
 | `Trip Management Service` | The trip state machine and the booking Saga orchestrator; source of truth for every ride | Needs strong consistency and must be able to answer "what state is trip X in right now?" | `PostgreSQL` |
@@ -69,8 +69,8 @@ routinely modelled as one. They have opposite profiles in every dimension that m
 profile is a few hundred writes per second at most, must survive a total cluster loss, and is read
 during onboarding, support and payouts. A driver's location is roughly 19,000 writes per second,
 is worthless four seconds after it arrives, and is read only by the `Matching Engine`. Combining
-them means paying durable-database prices — replication, write-ahead logging, backups, Multi-AZ
-failover — for data we would happily throw away. It also couples the scaling of the two: a
+them means paying durable-database prices (replication, write-ahead logging, backups, Multi-AZ
+failover) for data we would happily throw away. It also couples the scaling of the two: a
 location write spike would contend for connections with profile reads. Kept apart, the location
 index is an unreplicated `Redis` instance with a 30-second TTL that rebuilds itself within one
 ping interval if it is lost, and the driver database is a small, boring, durable `PostgreSQL`
@@ -100,16 +100,16 @@ boundary is drawn to make that failure mode impossible rather than merely unlike
 | `Matching Engine` → `Routing Service` | gRPC | Binary protobuf over multiplexed HTTP/2, with generated type-safe stubs. This path carries the ETA ranking call inside a 500ms budget, so serialisation cost is not negligible |
 | `Matching Engine` → `Trip Management Service` | gRPC | The caller cannot proceed until the trip record exists; a synchronous call with a hard timeout is the honest representation of that dependency |
 | `Trip Management Service` → `Billing Service` | gRPC | Payment authorisation is the Saga's pivot transaction (§6.4) and its result determines whether the booking proceeds |
-| `Trip Management Service` → `Notification Service`, analytics, driver earnings | `Kafka` — `trip.events` topic | Nothing downstream of trip state needs to block the rider's response |
-| `Location Ingestion Service` → geo-indexer, `Surge Pricing Service` | `Kafka` — `driver.location` topic | Decouples the write firehose from every consumer of it, and is what makes the 5x burst absorbable (§5.7) |
-| `Billing Service` → analytics, reconciliation | `Kafka` — `billing.events` topic | Financial reporting is never on a user-facing path |
+| `Trip Management Service` → `Notification Service`, analytics, driver earnings | `Kafka`, `trip.events` topic | Nothing downstream of trip state needs to block the rider's response |
+| `Location Ingestion Service` → geo-indexer, `Surge Pricing Service` | `Kafka`, `driver.location` topic | Decouples the write firehose from every consumer of it, and is what makes the 5x burst absorbable (§5.7) |
+| `Billing Service` → analytics, reconciliation | `Kafka`, `billing.events` topic | Financial reporting is never on a user-facing path |
 | `Billing Service` → payment gateway | REST over HTTPS | Vendor-dictated; not our choice |
 | All service-to-service traffic | via `Envoy` sidecar | Circuit breaking, retries, timeouts and per-service quotas are implemented once in the mesh rather than in ten codebases (§7.1) |
 
 The governing rule is deliberately narrow: **synchronous only where the caller genuinely cannot
 proceed without the answer; everything else is an event.** Applying it leaves four synchronous
 hops in the booking path and moves everything else onto `Kafka`. That is what makes a 5x demand
-spike a queue-depth problem rather than a cascading-timeout problem — a direct-write architecture
+spike a queue-depth problem rather than a cascading-timeout problem. A direct-write architecture
 would convert the same spike into connection-pool exhaustion across every service at once.
 
 ### 4.5 Data ownership & isolation
@@ -126,7 +126,7 @@ The direct consequence is that no single ACID transaction can span a booking, be
 touches `Trip Management Service`, `Matching Engine` and `Billing Service`. That is not a gap in
 the design; it is the cost of the isolation above, paid deliberately, and it is why the booking
 flow is implemented as an orchestrated Saga with explicit compensating transactions (§6.4). The
-alternative — a shared database that permits a distributed transaction — would restore atomicity
+alternative, a shared database that permits a distributed transaction, would restore atomicity
 at the price of coupling every service's schema, deployment and failure domain to every other's.
 
 Ownership is also what makes the storage decisions in §6.1 possible at all. Because
@@ -135,29 +135,14 @@ because `Billing Service` owns its database outright, we can choose to run it Mu
 consistency. A shared store would force one consistency model onto workloads that need different
 ones.
 
----
-
-![C4 Level 1 - System Context](../diagrams/c4-01-context.png)
-
-**Figure 1 — C4 Level 1: System Context.** UrbanRide as a single system, showing the two classes
-of user and the four external systems it depends on. Self-hosting routing on OpenStreetMap data,
-rather than calling a commercial maps API per request, is the decision that keeps the platform
-inside the 10 LKR per ride ceiling (§8.2).
+![C4 Level 1, System Context. UrbanRide as a single system, showing the two classes of user and the four external systems it depends on. Self-hosting routing on OpenStreetMap data, rather than calling a commercial maps API per request, is the decision that keeps the platform inside the 10 LKR per ride ceiling (§8.2).](../diagrams/c4-01-context.png){width=100%}
 
 <!-- DIAGRAM 1 | OWNER: M1 | FILE: diagrams/c4-01-context.png
      Shows: UrbanRide as one box; external actors = Rider, Driver, Payment Gateway,
      SMS Provider, Push Notification Service, OpenStreetMap data source.
      Keep deliberately simple - this is for non-technical stakeholders. -->
 
----
-
-![C4 Level 2 - Container](../diagrams/c4-02-container.png)
-
-**Figure 2 — C4 Level 2: Container.** All ten services with their data stores and the protocol on
-every connection. The two paths worth tracing are the booking path — rider to `API Gateway` to
-`Matching Engine`, then gRPC to `Routing Service` and `Trip Management Service` — and the location
-firehose, which enters over WebSocket and is decoupled from every consumer by the
-`driver.location` topic on `Kafka`.
+![C4 Level 2, Container. All ten services with their data stores and the protocol on every connection. Two paths are worth tracing. The booking path runs from the rider through `API Gateway` to `Matching Engine`, then by gRPC to `Routing Service` and `Trip Management Service`. The location firehose enters over WebSocket and is decoupled from every consumer by the `driver.location` topic on `Kafka`.](../diagrams/c4-02-container.png){width=100%}
 
 <!-- DIAGRAM 2 | OWNER: M1 | FILE: diagrams/c4-02-container.png
      Shows: all 9 services + API Gateway + Kafka + Redis + PostgreSQL + OSRM + S3.

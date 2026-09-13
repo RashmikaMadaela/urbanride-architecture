@@ -1,0 +1,34 @@
+%% UrbanRide resilience layers across the request path
+%% Target file: diagrams/resilience-01-layers.png
+%% Simplified: one mechanism per box, straight left-to-right request path,
+%% with the two failure-containment exits dropping below it.
+%% All four named mechanisms appear: rate limiters, circuit breakers,
+%% backpressure, dead-letter queues. Detail is in ADD section 7.
+
+flowchart LR
+    client["Rider / Driver<br/>clients"]
+    gw["API Gateway<br/><b>Rate limiting</b>"]
+    mesh["Envoy sidecar<br/><b>Circuit breakers</b>"]
+    svc["Core services"]
+    kafka["Kafka<br/><b>Backpressure</b>"]
+    data[("Redis + PostgreSQL")]
+
+    dlq["<b>Dead-letter topics</b><br/>after max retries"]
+    fallback["Haversine fallback<br/>on upstream timeout"]
+
+    client --> gw --> mesh --> svc
+    svc --> kafka
+    svc --> data
+    kafka --> dlq
+    mesh --> fallback
+    fallback -.->|"degraded ranking"| svc
+
+    classDef clientNode fill:#FFF1CC,stroke:#9A6A00,stroke-width:1.5px,color:#1a1a1a
+    classDef protection fill:#E2F2E8,stroke:#2E6B43,stroke-width:1.5px,color:#1a1a1a
+    classDef core       fill:#E8F1FA,stroke:#24557A,stroke-width:1.5px,color:#1a1a1a
+    classDef degraded   fill:#FCE8E6,stroke:#A33A32,stroke-width:1.5px,color:#1a1a1a
+
+    class client clientNode
+    class gw,mesh,kafka protection
+    class svc,data core
+    class dlq,fallback degraded

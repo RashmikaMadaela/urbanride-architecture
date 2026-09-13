@@ -49,11 +49,7 @@ Timeouts are bounded on every remote call; Matching to Routing Service uses a 10
 
 **Spot instance reclaim on connection-holding services.** WebSocket termination stays on on-demand nodes because each node holds connection state. Spot is limited to genuinely stateless REST pods, matching workers, consumers, and OSRM replicas. Deploys still drain gracefully: stop new connections, notify clients, and use jittered exponential reconnect to avoid a thundering herd.
 
----
-
-![Resilience layers](../diagrams/resilience-01-layers.png)
-
-**Figure 7 - Resilience layers across the request path.** Rate limiting and load shedding begin at the edge, circuit breakers and timeouts contain synchronous failures in the service mesh, Kafka absorbs asynchronous bursts, and failed messages move to dead-letter topics after bounded retries.
+![Resilience layers across the request path. Rate limiting and load shedding begin at the edge, circuit breakers and timeouts contain synchronous failures in the service mesh, Kafka absorbs asynchronous bursts, and failed messages move to dead-letter topics after bounded retries.](../diagrams/resilience-01-layers.png){width=100%}
 
 <!-- DIAGRAM 7 (OPTIONAL - build only if time allows) | OWNER: M3
      FILE: diagrams/resilience-01-layers.png

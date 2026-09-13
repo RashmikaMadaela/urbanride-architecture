@@ -1,0 +1,45 @@
+%% UrbanRide C4 Level 3: Component view of the Matching Engine
+%% Target file: diagrams/c4-03-component-matching.png
+%% Simplified: one short line per component, protocols only on edges.
+%% The per-step detail (cell counts, timings, cache keys) is in ADD section 5.2.
+
+flowchart TB
+    gw["API Gateway"]
+
+    subgraph me["Matching Engine"]
+        rh["Request Handler"]
+        h3["H3 Indexer<br/>lat/lng to K-ring cells"]
+        cf["Candidate Fetcher<br/>pipelined SMEMBERS"]
+        eta["ETA Client<br/>cache, then OSRM"]
+        rank["Ranking Module<br/>sort by road ETA"]
+        cas["Assignment CAS<br/>SET NX, prevents double-booking"]
+    end
+
+    hav["Haversine fallback"]
+    redis[("Redis<br/>geo-index, assignments, ETA cache")]
+    rs["Routing Service<br/>(OSRM)"]
+    tms["Trip Management Service"]
+
+    gw -->|"gRPC"| rh
+    rh --> h3
+    h3 -->|"7-19 cells"| cf
+    cf <-->|"SMEMBERS"| redis
+    cf -->|"~30 candidates"| eta
+    eta <-->|"gRPC table"| rs
+    eta <-->|"cache lookup"| redis
+    eta -.->|"on timeout"| hav
+    eta --> rank
+    hav -.-> rank
+    rank -->|"top candidate"| cas
+    cas -->|"SET NX"| redis
+    cas -->|"gRPC"| tms
+
+    classDef component fill:#E8F1FA,stroke:#24557A,stroke-width:1.5px,color:#1a1a1a
+    classDef externalc fill:#FFF1CC,stroke:#9A6A00,stroke-width:1.5px,color:#1a1a1a
+    classDef volatile  fill:#FCE8E6,stroke:#A33A32,stroke-width:1.5px,color:#1a1a1a
+    classDef degraded  fill:#FCE8E6,stroke:#A33A32,stroke-width:1.5px,color:#1a1a1a
+
+    class rh,h3,cf,eta,rank,cas component
+    class gw,rs,tms externalc
+    class redis volatile
+    class hav degraded

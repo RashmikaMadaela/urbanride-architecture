@@ -1,6 +1,6 @@
 digraph SeqRideRequest {
   graph [rankdir=LR, bgcolor="white", pad="0.35", nodesep="0.50", ranksep="0.70", labelloc="t",
-         label="UrbanRide — End-to-end ride request sequence\nAnnotated with latency budget from §5.3  (total ~210ms, headroom ~290ms to 500ms SLA)",
+         label="UrbanRide End-to-end ride request sequence\nAnnotated with latency budget from §5.3  (total ~210ms, headroom ~290ms to 500ms SLA)",
          fontname="Arial", fontsize=16, splines=false];
   node [shape=box, style="rounded,filled", fillcolor="#E8F1FA", color="#24557A", fontname="Arial", fontsize=10, margin="0.16,0.09"];
   edge [color="#24557A", fontname="Arial", fontsize=9, arrowsize=0.7];
@@ -36,7 +36,7 @@ digraph SeqRideRequest {
   s11 [label="⑪ SET NX driver:assign → trip_id\l   atomic CAS  ~20ms", shape=plaintext, fillcolor=none, color=none];
   s12 [label="⑫ gRPC UpdateTrip (status=Matched)", shape=plaintext, fillcolor=none, color=none];
   s13 [label="⑬ Kafka trip.events → billing.authorise", shape=plaintext, fillcolor=none, color=none];
-  s14 [label="⑭ REST/HTTPS — payment gateway\l   Authorise hold", shape=plaintext, fillcolor=none, color=none];
+  s14 [label="⑭ REST/HTTPS: payment gateway\l   Authorise hold", shape=plaintext, fillcolor=none, color=none];
   s15 [label="⑮ Kafka trip.events → notify\l   Push: driver offer + rider ETA", shape=plaintext, fillcolor=none, color=none];
   s16 [label="⑯ WebSocket dispatch offer", shape=plaintext, fillcolor=none, color=none];
   s17 [label="⑰ WebSocket live driver position\l   to Rider App", shape=plaintext, fillcolor=none, color=none];

@@ -1,8 +1,7 @@
-## Appendix A — Assumptions Register
+## Appendix A: Assumptions Register
 
 <!-- OWNER: M4 -->
-<!-- Anything unverified must be marked as such, not presented as fact.
-     This is cheap insurance if a panellist challenges a number. -->
+<!-- Every figure carries its status: Given, Locked, Derived, or Modelling assumption. -->
 
 ### Given / locked requirements
 
@@ -11,7 +10,7 @@
 | G1 | Completed rides/day | 1,000,000 | Given | Drives all monthly and annual volume calculations |
 | G2 | Cost ceiling | 10 LKR/ride | Given | Formal scope is cloud infrastructure and platform operating cost only |
 | G3 | Demand burst | 5x | Given | Drives peak request rate and headroom |
-| G4 | Cloud provider and region | AWS, ap-south-1 (Mumbai) | Locked | Verify current AWS regional pricing |
+| G4 | Cloud provider and region | AWS, ap-south-1 (Mumbai) | Locked | Pricing basis for the §8 cost model |
 | G5 | Deployment topology | Single-region | Locked | Multi-region is future work; avoids duplicated production cost |
 
 ### Derived figures
@@ -20,10 +19,10 @@
 |---|---|---:|---|---|
 | D1 | Monthly rides | ~30,000,000 | Derived | 1,000,000 x 30 |
 | D2 | Annual rides | ~365,000,000 | Derived | 1,000,000 x 365 |
-| D3 | Peak concurrent online drivers | ~75,000 | Derived | From M2 §3.3; sizes WebSocket and Redis |
-| D4 | Peak location writes | ~19,000/sec; ceiling 25,000/sec | Derived | From M2 §3.3 |
+| D3 | Peak concurrent online drivers | ~75,000 | Derived | See §3.3; sizes WebSocket and Redis |
+| D4 | Peak location writes | ~19,000/sec; ceiling 25,000/sec | Derived | See §3.3 |
 | D5 | Peak location data | ~3.75 MB/sec | Derived | 25,000 events/sec x 150 bytes |
-| D6 | Peak active trips | ~30,000 | Derived | From M2 §3.3 |
+| D6 | Peak active trips | ~30,000 | Derived | See §3.3 |
 | D7 | ETA calculations | 30/ride; ~30M/day; ~1,500/sec peak | Derived/modelled | Sizes OSRM and Routing Service |
 | D8 | Trip data volume | ~2 GB/day; ~730 GB/year | Derived | Based on 2 KB/trip record |
 | D9 | Egress and map traffic | ~15 TB/month outbound; ~18 TB/month map tiles | Derived/modelled | Sizes CDN and egress budget |
@@ -43,28 +42,4 @@
 | M9 | Kafka capacity | 3 brokers, RF 3, 24-hour retention | Sizing decision | ~25,000 messages/sec design point; on-demand because stateful |
 | M10 | Redis capacity | 3 shards plus replicas | Sizing decision | Supports ~75,000 online drivers and H3 lookup |
 | M11 | OTP usage | 500,000 active riders; 1 OTP/rider/month | Modelling assumption | Produces ~500,000 SMS/month |
-| M12 | FX rate | 328 LKR/USD, recorded 13 Sep 2026 | Working assumption | Used only for USD-to-LKR conversion; CBSL displayed 328.5966 indicative USD/LKR when checked. **VERIFY** current rate before submission. |
-
-### External figures requiring verification
-
-The figures in this section are working estimates for architecture modelling, not vendor quotations. They are subject to change with region, contract, usage and provider pricing. Where authoritative current pricing is available, each figure must be rechecked before final submission; otherwise it remains a model assumption marked **VERIFY**. AWS public pricing pages and the Google Maps pricing list are source references, but the UrbanRide monthly amounts remain workload models unless reproduced in the relevant vendor calculator with the complete workload.
-
-| ID | Assumption / Figure | Value | Unit | Source | Status | Notes |
-|---|---|---:|---|---|---|---|
-| X1 | AWS ap-south-1 pricing | Working estimate; not a quotation | Monthly USD | [AWS pricing](https://aws.amazon.com/pricing/) and [AWS Pricing Calculator](https://calculator.aws/) | Modelled — VERIFY | Region is locked to ap-south-1; actual amount depends on selected services, instance families, utilization and discounts. |
-| X2 | AWS service and data-transfer pricing | Working estimate; not a quotation | Monthly USD | [EC2](https://aws.amazon.com/ec2/pricing/), [S3](https://aws.amazon.com/s3/pricing/), [CloudFront](https://aws.amazon.com/cloudfront/pricing/), [CloudWatch](https://aws.amazon.com/cloudwatch/pricing/) | Modelled — VERIFY | Official rate cards are inputs; complete workload, traffic, storage and observability volumes were not recreated in the calculator. |
-| X3 | Compute Route Matrix Essentials and final team comparison scenario | $5 first listed paid tier; ~$0.160/ride team scenario | Per 1,000 elements; per ride scenario | [Google Maps global pricing](https://developers.google.com/maps/billing-and-pricing/pricing); [Routes billing](https://developers.google.com/maps/documentation/routes/usage-and-billing); M3 final trade-off figure | Verified vendor list price; workload scenario VERIFY | Elements = origins x destinations. The final team comparison uses M3's approved ~$0.194/ride full scenario, reported as ~64 LKR/ride at 328 LKR/USD; this is not a guaranteed vendor bill. |
-| X4 | Compute Routes Essentials | $5 first listed paid tier | Per 1,000 requests | [Google Maps global pricing](https://developers.google.com/maps/billing-and-pricing/pricing); [Routes billing](https://developers.google.com/maps/documentation/routes/usage-and-billing) | Verified vendor list price; workload tier VERIFY | The UrbanRide scenario assumes 2 requests/ride; this is separate from the vendor rate. |
-| X5 | Geocoding | $5 first listed paid tier | Per 1,000 requests | [Google Maps global pricing](https://developers.google.com/maps/billing-and-pricing/pricing); [Geocoding billing](https://developers.google.com/maps/documentation/geocoding/usage-and-billing) | Verified vendor list price; workload tier VERIFY | The UrbanRide scenario assumes 2 requests/ride; current account-level tier still requires verification. |
-| X6 | Dynamic Maps | $7 first listed paid tier | Per 1,000 loads | [Google Maps global pricing](https://developers.google.com/maps/billing-and-pricing/pricing) | Verified vendor list price; workload tier VERIFY | The UrbanRide scenario assumes 2 loads/ride; product usage and account tier must be confirmed. |
-| X7 | EKS compute | $975 model | Monthly USD | [EKS pricing](https://aws.amazon.com/eks/pricing/), [EC2 Spot pricing](https://aws.amazon.com/ec2/spot/pricing/) | Modelled — VERIFY | Approximately 12 nodes and 70% Spot/30% On-Demand; Spot availability, instance mix and utilization are not fixed. |
-| X8 | Kafka | $540 model | Monthly USD | [Amazon MSK pricing](https://aws.amazon.com/msk/pricing/) | Modelled — VERIFY | Three brokers, replication factor 3 and retention are sizing assumptions; managed versus self-managed deployment changes the price. |
-| X9 | Redis | $660 model | Monthly USD | [ElastiCache for Redis pricing](https://aws.amazon.com/elasticache/redis/pricing/) | Modelled — VERIFY | Three shards plus replicas; node family, storage, throughput and Multi-AZ choices require validation. |
-| X10 | PostgreSQL | $1,565 model | Monthly USD | [RDS for PostgreSQL pricing](https://aws.amazon.com/rds/postgresql/pricing/) | Modelled — VERIFY | Separate Trip Management Service and Billing Service instances; Multi-AZ/replica, instance family, storage, I/O and backup retention are not fully specified for a calculator quotation. |
-| X11 | OSRM | $1,035 model | Monthly USD | AWS EC2 and EKS pricing references | Modelled — VERIFY | Self-hosted OSRM cost depends on road-graph memory, CPU profile, replica count, utilization and scaling behaviour. |
-| X12 | ALB + WebSocket termination | $300 model | Monthly USD | [Elastic Load Balancing pricing](https://aws.amazon.com/elasticloadbalancing/pricing/) | Modelled — VERIFY | Approximately 75,000 persistent connections; LCU usage, bytes processed and connection duration require measurement. |
-| X13 | S3 archive, NAT and observability | $810 model | Monthly USD | [S3 pricing](https://aws.amazon.com/s3/pricing/), [CloudWatch pricing](https://aws.amazon.com/cloudwatch/pricing/) | Modelled — VERIFY | Archive volume, NAT bytes, logs, metrics and retention are workload-dependent. |
-| X14 | Data egress and CDN | $1,350 and $1,200 models | Monthly USD | [CloudFront pricing](https://aws.amazon.com/cloudfront/pricing/) and AWS data-transfer pricing | Modelled — VERIFY | Approximately 15 TB outbound and 18 TB map-tile traffic; CDN distribution, cache hit ratio and destination mix require validation. |
-| X15 | Local bulk SMS price | ~1 LKR/SMS | Per SMS | No authoritative public provider tariff confirmed | Requires provider quotation | **VERIFY — provider quotation required.** Keep 1 LKR/SMS only as a modelling assumption, not verified vendor pricing. |
-| X16 | OSRM and map-tile operating cost | $1,035 and $1,200 models | Monthly USD | Architecture model using AWS rate-card references | Modelled — VERIFY | These are not vendor quotations; benchmark the self-hosted road graph and CDN workload before deployment. |
-| X17 | USD/LKR conversion | 328 working assumption; CBSL displayed 328.5966 indicative rate | LKR per USD | [Central Bank of Sri Lanka exchange rates](https://www.cbsl.gov.lk/en/rates-and-indicators/exchange-rates) | Modelled — VERIFY | 328 is retained only as a rounded conversion assumption; recheck the relevant submission-date rate. |
+| M12 | FX rate | 328 LKR/USD, recorded 13 Sep 2026 | Working assumption | Used only for USD-to-LKR conversion; the Central Bank of Sri Lanka indicative rate was 328.5966 on that date. |

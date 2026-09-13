@@ -8,8 +8,8 @@
      assumptions requiring validation -->
 
 **Self-hosted routing is our largest risk.** Running `OSRM` on OpenStreetMap data is the decision
-that brings the platform inside the cost ceiling — the commercial alternative is roughly 64 LKR
-per ride against a 10 LKR budget (§8.2) — but it transfers real work onto us. We own the OSM
+that brings the platform inside the cost ceiling, since the commercial alternative is roughly 64 LKR
+per ride against a 10 LKR budget (§8.2), but it transfers real work onto us. We own the OSM
 extract pipeline, the graph rebuild schedule, the quality of the underlying map data in our
 operating region, and any traffic modelling we choose to add. A commercial provider would absorb
 all of that. The mitigation is that a routing failure degrades rather than stops the service: the
@@ -30,9 +30,9 @@ index, and it is why the index is designed to be rebuildable rather than durable
 rides per driver per day, outbound data volume per ride, and the LKR/USD exchange rate all feed
 the capacity and cost models, and none comes from a running system. Appendix A records each with
 its status. The exchange rate and the local bulk SMS rate are the two that most directly move the
-cost result and should be re-verified before the figures are relied upon commercially. The
-architecture is not sensitive to moderate error in these — the infrastructure result sits at
-roughly 1.7% of the ceiling, so even a large proportional error does not change the conclusion —
+cost result, and both would need a contracted figure before the model could be relied on commercially. The
+architecture is not sensitive to moderate error in these, because the infrastructure result sits at
+roughly 1.7% of the ceiling and even a large proportional error does not change the conclusion,
 but the specific numbers would move.
 
 **Operational maturity is assumed, not demonstrated.** The design leans on `Envoy`, `Kafka`,
@@ -69,5 +69,5 @@ cell.
 
 **Cost-model validation under real load.** Every figure in §8 derives from list prices and sizing
 heuristics. The first production month would replace the estimates with measurements, and the
-outbound data volume per ride — the softest assumption in the model — is the one most worth
+outbound data volume per ride, the softest assumption in the model, is the one most worth
 measuring first.

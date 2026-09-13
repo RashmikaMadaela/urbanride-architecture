@@ -1,0 +1,61 @@
+%% UrbanRide end-to-end ride request sequence
+%% Target file: diagrams/seq-01-ride-request.png
+%% Annotated with the latency budget from ADD section 5.3
+%% Critical path total ~210ms, headroom ~290ms to the 500ms SLA.
+%% NOTE: the Graphviz original was not a true sequence diagram - it had no
+%% lifelines. This version does, which is why it is worth redrawing.
+
+sequenceDiagram
+    autonumber
+    actor Rider as Rider App
+    participant GW as API Gateway
+    participant ME as Matching Engine
+    participant R as Redis
+    participant RS as Routing Service (OSRM)
+    participant TMS as Trip Management Service
+    participant BS as Billing Service
+    participant NS as Notification Service
+    actor Driver as Driver App
+
+    Rider->>GW: POST /rides [REST/HTTPS]
+    activate GW
+    Note over GW: Auth + rate-limit check<br/>~20ms
+    GW->>ME: gRPC RideRequest
+    deactivate GW
+    activate ME
+
+    Note over ME: lat/lng to H3 res-8 cell<br/>K-ring(1) = 7 cells, under 1ms
+
+    ME->>R: SMEMBERS (pipelined, K-ring cells)
+    R-->>ME: ~30 candidate driver IDs (~2-5ms)
+
+    ME->>RS: gRPC table(30 origins) [many-to-one ETA]
+    RS-->>ME: duration_sec[] ranked (~50-80ms)
+
+    ME->>R: GET surge:h3:{cell}
+    R-->>ME: multiplier (~5ms)
+
+    ME->>TMS: gRPC CreateTrip (status=Requested)
+    activate TMS
+    TMS-->>ME: trip_id (PostgreSQL write ~30ms)
+
+    ME->>R: SET NX driver:{id}:assignment = trip_id
+    R-->>ME: OK, atomic CAS won (~20ms)
+    deactivate ME
+
+    TMS->>TMS: UpdateTrip (status=Matched)
+
+    Note over Rider,Driver: Critical path ends here: ~210ms of the 500ms SLA
+
+    TMS-)BS: Kafka trip.events (async)
+    deactivate TMS
+    activate BS
+    BS->>BS: Authorise payment hold [Saga pivot]
+    BS-)BS: REST/HTTPS to payment gateway
+    deactivate BS
+
+    TMS-)NS: Kafka trip.events (async)
+    activate NS
+    NS->>Driver: WebSocket dispatch offer
+    NS->>Rider: WebSocket live driver position + ETA
+    deactivate NS

@@ -1,0 +1,33 @@
+%% UrbanRide booking Saga with compensating transactions
+%% Target file: diagrams/saga-01-booking.png
+%% Orchestrated by the Trip Management Service - see ADD section 6.4.
+%% Step 3 is the pivot transaction: after it succeeds the Saga commits forward.
+
+flowchart LR
+    s1["1. Create Requested trip<br/>Trip Management Service"]
+    s2["2. Reserve driver<br/>Matching Engine"]
+    s3["3. Authorise payment<br/>Billing Service<br/><b>PIVOT</b>"]
+    s4["4. Confirm Matched trip<br/>Trip Management Service"]
+    s5["5. Notify rider + driver<br/>Notification Service"]
+
+    c1["Compensate: mark Cancelled<br/>Trip Management Service"]
+    c2["Compensate: release driver<br/>Matching Engine"]
+    c3["Compensate: void authorisation<br/>Billing Service"]
+    c4["Compensate: re-match<br/>Trip Management Service"]
+
+    s1 --> s2 --> s3 --> s4 --> s5
+
+    s1 -->|"create fails"| c1
+    s2 -->|"reserve fails"| c2
+    s3 -->|"confirm fails"| c3
+    s4 -->|"state update fails"| c4
+
+    classDef step       fill:#E8F1FA,stroke:#24557A,stroke-width:1.5px,color:#1a1a1a
+    classDef pivot      fill:#FFF1CC,stroke:#9A6A00,stroke-width:2px,color:#1a1a1a
+    classDef done       fill:#E2F2E8,stroke:#2E6B43,stroke-width:1.5px,color:#1a1a1a
+    classDef compensate fill:#FCE8E6,stroke:#A33A32,stroke-width:1.5px,color:#1a1a1a
+
+    class s1,s2,s4 step
+    class s3 pivot
+    class s5 done
+    class c1,c2,c3,c4 compensate

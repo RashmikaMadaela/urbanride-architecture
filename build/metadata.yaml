@@ -1,17 +1,76 @@
 ---
-title: "UrbanRide — Architecture Design Document"
+title: "UrbanRide Architecture Design Document"
 subtitle: "Scalable Microservices Backend for a Global Ride-Hailing Platform"
 author:
-  - "Rashmika — Architecture Lead & Integrator"
-  - "Pamoth — Performance & Geospatial"
-  - "Lakshika — Data & Resilience"
-  - "[[ M4 name ]] — Cost & Infrastructure"
-  - "[[ M5 name ]] — Deck & Assembly"
-date: "13 September 2026"
+  - "KUMARASINGHE HRPR (230354T)"
+  - "LAKMAL H.M.P. (230361L)"
+  - "LAKSHIKA G. (230370M)"
+  - "MADAELA M.P.G.R.V.M. (230381X)"
+  - "MADHUBHASHINI M.D.D. (230384J)"
+date: |
+  CS3213 Advanced Software Engineering\
+  Group 9\
+  13 September 2026
+classoption: titlepage
 geometry: margin=2.5cm
 fontsize: 11pt
 linkcolor: blue
 toc: true
 toc-depth: 3
 numbersections: false
+colorlinks: true
+header-includes:
+  # Title page, then the contents on their own page, then the body.
+  - \usepackage{etoolbox}
+  - \pretocmd{\tableofcontents}{\clearpage}{}{}
+  - \apptocmd{\tableofcontents}{\clearpage}{}{}
+  # Title and subtitle centred; authors, module and date sit lower down.
+  - |
+    \renewcommand{\maketitle}{%
+      \begin{titlepage}
+      \centering
+      \vspace*{\fill}
+      {\LARGE\bfseries UrbanRide Architecture Design Document\par}
+      \vspace{1.1em}
+      {\large Scalable Microservices Backend for a Global Ride-Hailing Platform\par}
+      \vspace*{\fill}
+      {\small
+        \begin{tabular}{@{}l@{\hspace{2.5em}}l@{}}
+          KUMARASINGHE HRPR    & 230354T \\
+          LAKMAL H.M.P.        & 230361L \\
+          LAKSHIKA G.          & 230370M \\
+          MADAELA M.P.G.R.V.M. & 230381X \\
+          MADHUBHASHINI M.D.D. & 230384J \\
+        \end{tabular}\par}
+      \vspace{2.4em}
+      {CS3213 Advanced Software Engineering\par}
+      \vspace{0.35em}
+      {Group 9\par}
+      \vspace{1.4em}
+      {13 September 2026\par}
+      \vspace{2.2cm}
+      \end{titlepage}%
+    }
+  # nobottomtitles* keeps a heading from being stranded at the foot of a page
+  # with its content pushed to the next one.
+  - \usepackage[nobottomtitles*]{titlesec}
+  - \renewcommand{\bottomtitlespace}{0.18\textheight}
+  - \titleformat{\section}{\Large\bfseries}{}{0pt}{}
+  - \titlespacing*{\section}{0pt}{22pt}{12pt}
+  - \titlespacing*{\subsection}{0pt}{16pt}{6pt}
+  - \setlength{\parskip}{6pt}
+  # Never leave a single line of a paragraph orphaned across a page break.
+  - \clubpenalty=10000
+  - \widowpenalty=10000
+  - \displaywidowpenalty=10000
+  - \brokenpenalty=10000
+  # Let short pages end short rather than stretching the gaps between blocks.
+  - \raggedbottom
+  # Keep every figure inside the section it belongs to.
+  - \usepackage[section]{placeins}
+  # Give floats room to settle instead of dumping them all at the end.
+  - \renewcommand{\topfraction}{0.9}
+  - \renewcommand{\bottomfraction}{0.8}
+  - \renewcommand{\textfraction}{0.07}
+  - \renewcommand{\floatpagefraction}{0.75}
 ---

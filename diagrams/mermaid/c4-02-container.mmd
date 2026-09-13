@@ -1,0 +1,91 @@
+%% UrbanRide C4 Level 2: Container
+%% Target file: diagrams/c4-02-container.png
+%% Simplified: node labels are names only and edge labels are protocols only.
+%% The detail that used to sit in the labels (timeouts, TTLs, partition counts,
+%% fallback behaviour) lives in ADD sections 4.4, 5.6 and 6.1 instead.
+%% All service-to-service calls traverse an Envoy sidecar - state that in the caption.
+
+flowchart TB
+    subgraph clients["Clients"]
+        riderapp["Rider App"]
+        driverapp["Driver App"]
+    end
+
+    gateway["API Gateway"]
+
+    subgraph dispatch["Dispatch"]
+        location["Location Ingestion Service"]
+        matching["Matching Engine"]
+        routing["Routing Service<br/>(OSRM)"]
+    end
+
+    subgraph accounts["Accounts"]
+        rider["Rider Service"]
+        driver["Driver Service"]
+    end
+
+    subgraph tripgrp["Trip, Pricing &amp; Money"]
+        trip["Trip Management Service"]
+        surge["Surge Pricing Service"]
+        billing["Billing Service"]
+        notify["Notification Service"]
+    end
+
+    redis[("Redis<br/>no persistence")]
+    kafka["Kafka"]
+
+    subgraph stores["Durable stores"]
+        pgprof[("PostgreSQL<br/>Profiles")]
+        pgtrip[("PostgreSQL<br/>Trips")]
+        pgbill[("PostgreSQL<br/>Billing")]
+        s3[("S3<br/>Warm + Cold")]
+    end
+
+    paygw["Payment Gateway"]
+    osmx["OpenStreetMap"]
+
+    riderapp -->|"REST/HTTPS"| gateway
+    driverapp -->|"WebSocket"| gateway
+
+    gateway -->|"WebSocket"| location
+    gateway -->|"gRPC"| matching
+    gateway -->|"gRPC"| trip
+    gateway -->|"gRPC"| rider
+    gateway -->|"gRPC"| driver
+
+    matching -->|"gRPC"| routing
+    matching -->|"gRPC"| trip
+    trip -->|"gRPC"| billing
+
+    location -->|"H3 index"| redis
+    matching -->|"K-ring + CAS"| redis
+    surge -->|"multipliers"| redis
+    billing -->|"pinned quote"| redis
+
+    location -->|"driver.location"| kafka
+    trip -->|"trip.events"| kafka
+    billing -->|"billing.events"| kafka
+    kafka --> surge
+    kafka --> notify
+
+    rider -->|"SQL"| pgprof
+    driver -->|"SQL"| pgprof
+    trip -->|"SQL"| pgtrip
+    billing -->|"SQL"| pgbill
+    pgtrip -->|"nightly Parquet export"| s3
+
+    billing -->|"REST/HTTPS"| paygw
+    osmx -->|"nightly extract"| routing
+
+    classDef client   fill:#E2F2E8,stroke:#2E6B43,stroke-width:1.5px,color:#1a1a1a
+    classDef edgeNode fill:#FFF1CC,stroke:#9A6A00,stroke-width:2px,color:#1a1a1a
+    classDef service  fill:#E8F1FA,stroke:#24557A,stroke-width:1.5px,color:#1a1a1a
+    classDef volatile fill:#FCE8E6,stroke:#A33A32,stroke-width:1.5px,color:#1a1a1a
+    classDef external fill:#EFEFEF,stroke:#5A5A5A,stroke-width:1.5px,color:#1a1a1a
+
+    class riderapp,driverapp client
+    class gateway,kafka edgeNode
+    class rider,driver,location,matching,routing,trip,surge,billing,notify service
+    class redis volatile
+    class pgprof,pgtrip,pgbill,s3 service
+    class paygw,osmx external

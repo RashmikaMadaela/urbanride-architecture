@@ -3,7 +3,7 @@
 **Owner:** M1 · **Status:** Locked as of Sat 12 Sept, kickoff call
 
 This file is the single source of truth for anything the whole team has to agree on.
-If something here is wrong, tell M1 — **do not** just change it in your own section.
+If something here is wrong, tell M1. **Do not** just change it in your own section.
 
 ---
 
@@ -52,9 +52,9 @@ strongest cost arguments and it needs to be visible on the container diagram.
 | D3 | Deployment topology | Single-region | Multi-region roughly doubles cost for zero marks; documented as future work |
 | D4 | C4 Component diagram subject | Matching Engine | Most technically interesting; showcases the H3 + ETA two-stage design |
 | D5 | Cost scope | Cloud infrastructure only | See wording below |
-| D6 | Diagramming tool | Graphviz `.dot` | Sources in `diagrams/source/`, rendered to PNG at 200 DPI. Three diagrams already exist in this format; a mixed toolchain would break the visual consistency `diagrams/README.md` requires |
+| D6 | Diagramming tool | Graphviz `.dot` | Sources in `diagrams/source/`, rendered to PNG at 200 DPI. Three diagrams already exist in this format, and a mixed toolchain would break the visual consistency `diagrams/README.md` requires |
 
-### D5 — exact wording to use
+### D5: exact wording to use
 
 > We interpret the 10 LKR target as cloud infrastructure and platform operating cost,
 > excluding payment processing fees, driver payouts, and customer acquisition.
@@ -62,7 +62,7 @@ strongest cost arguments and it needs to be visible on the container diagram.
 M1 puts this in `add/02-introduction-scope.md`. M4 references it in §8.1.
 **Don't paraphrase it differently in two places.**
 
-### D6 — how to render a diagram
+### D6: how to render a diagram
 
 ```bash
 dot -Tpng -Gdpi=200 diagrams/source/<name>.dot -o diagrams/<name>.png
@@ -75,7 +75,7 @@ existing `.dot` file rather than inventing a new palette. Commit the `.dot` sour
 
 ## Name drift found in committed work
 
-Caught during the M1 consistency pass on Sun 13 Sept. These strings are **wrong** — they came from
+Caught during the M1 consistency pass on Sun 13 Sept. These strings are **wrong**. They came from
 the research brief, which predates the canonical list above. Fix them in place; do not introduce
 a second spelling.
 
@@ -90,7 +90,7 @@ a second spelling.
 | `Surge Pricing` | `Surge Pricing Service` | `add/06-data-design.md` | M3 |
 | "nine services" | "ten services" | `README.md` checklist | M1 |
 
-Re-render any `.dot` you edit — the PNG is what the panel sees.
+Re-render any `.dot` you edit, because the PNG is what the panel sees.
 
 ---
 
@@ -132,8 +132,8 @@ Move anything resolved up into "Locked decisions" and delete the row.
 |---|---|---|
 | Sat 12 Sept | Initial decisions locked at kickoff | M1 |
 | Sun 13 Sept | D6 locked: Graphviz `.dot` at 200 DPI. Derived shared numbers unwrapped; FX rate and SMS rate still open for M4 | M1 |
-| Sun 13 Sept | Name drift from the research brief recorded — see section above. M3 and M2 to fix in their own files | M1 |
-| Sun 13 Sept 18:30 | **Name drift resolved by M1** under the final-say rule — all eight canonical names now used verbatim in every section and every diagram. M3's and M2's `.dot` sources were edited and re-rendered; M2's §5.8 heading and M3's §7.5 prose corrected. Nothing was rewritten beyond the name strings | M1 |
+| Sun 13 Sept | Name drift from the research brief recorded (see section above). M3 and M2 to fix in their own files | M1 |
+| Sun 13 Sept 18:30 | **Name drift resolved by M1** under the final-say rule. All eight canonical names now used verbatim in every section and every diagram. M3's and M2's `.dot` sources were edited and re-rendered; M2's §5.8 heading and M3's §7.5 prose corrected. Nothing was rewritten beyond the name strings | M1 |
 | Sun 13 Sept 18:30 | §3.1 said push notifications "with SMS fallback" at trip state transitions, contradicting §8.7, §9 and §4.2 (SMS is OTP-only, and per-ride SMS would cost 2 LKR/ride = 20% of budget). Corrected to OTP-only with a pointer to §8.7 | M1 |
-| Sun 13 Sept 18:30 | M2's `c4-03-component-matching.dot` and `seq-01-ride-request.dot` were committed but never rendered; `c4-03` is rubric-required. Both rendered to PNG at 200 DPI from M2's unmodified sources | M1 |
-| Sun 13 Sept 18:30 | §11 references drafted by M1 to unblock assembly — **M5 must verify every URL resolves** before submission | M1 |
+| Sun 13 Sept 18:30 | M2's `c4-03-component-matching.dot` and `seq-01-ride-request.dot` were committed but never rendered, and `c4-03` is rubric-required. Both rendered to PNG at 200 DPI from M2's unmodified sources | M1 |
+| Sun 13 Sept 18:30 | §11 references drafted by M1 to unblock assembly. **M5 must verify every URL resolves** before submission | M1 |

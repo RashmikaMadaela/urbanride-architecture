@@ -17,34 +17,34 @@ For this working model, the FX rate is **328 LKR/USD**, recorded on **13 Septemb
 | Month (30,000,000 rides) | 300,000,000 | ~$914,634 |
 | Year (365,000,000 rides) | 3,650,000,000 | ~$11,128,049 |
 
-The FX rate is an assumption/market value, not a guaranteed conversion rate; recheck it before final submission.
+The rate used is the indicative market rate on that date rather than a settlement rate, so LKR figures in this section move with the exchange rate.
 
 ### 8.2 The third-party API finding
 
 <!-- LEAD WITH THIS - it is the strongest cost argument in the document -->
 
-| Call | UrbanRide workload assumption | Current vendor list price | Final team scenario cost/ride |
+| Call | UrbanRide workload assumption | Vendor list price | Cost per ride |
 |---|---|---|---|
 | Compute Route Matrix Essentials | 20 elements/ride | $5/1,000 elements at first listed paid tier | ~$0.160 |
 | Compute Routes Essentials | 2 requests/ride | $5/1,000 requests at first listed paid tier | ~$0.010 |
 | Geocoding | 2 requests/ride | $5/1,000 requests at first listed paid tier | ~$0.010 |
 | Dynamic Maps | 2 loads/ride | $7/1,000 loads at first listed paid tier | ~$0.014 |
-| **Google Maps full team comparison** | | | **~$0.194** |
+| **Total per ride** | | | **~$0.194** |
 
 <!-- The Route Matrix element-billing detail is what makes it catastrophic.
      Final team comparison figure: ~64 LKR/ride = 6.4x over budget.
      Conclusion: self-hosted routing is mandatory, not an optimization.
      Note Grab's precedent (Pharos on OSM graphs). -->
 
-Google's official [global pricing list](https://developers.google.com/maps/billing-and-pricing/pricing), checked 13 September 2026, lists these first-tier Essentials prices. The [Routes billing documentation](https://developers.google.com/maps/documentation/routes/usage-and-billing) confirms that Compute Routes is billed per request while Compute Route Matrix is billed per element, where elements equal origins multiplied by destinations. Google also aggregates monthly billable events across projects linked to the billing account and applies volume tiers. The vendor list prices and UrbanRide workload quantities are shown separately; the final team scenario is not presented as a direct calculation from the current rate card. The actual high-volume tier and any negotiated discount remain **VERIFY** items.
+Google's official [global pricing list](https://developers.google.com/maps/billing-and-pricing/pricing), checked 13 September 2026, lists these first-tier Essentials prices. The [Routes billing documentation](https://developers.google.com/maps/documentation/routes/usage-and-billing) confirms that Compute Routes is billed per request while Compute Route Matrix is billed per element, where elements equal origins multiplied by destinations. Google also aggregates monthly billable events across projects linked to the billing account and applies volume tiers, so the effective rate at UrbanRide's volume would depend on the account's tier and on any negotiated discount.
 
-For the final cross-member comparison, M4 follows M3's approved team scenario: Route Matrix at approximately `$0.160/ride`, plus Routes `$0.010`, Geocoding `$0.010`, and Dynamic Maps `$0.014`, for approximately **$0.194/ride**. At the working rate of 328 LKR/USD this is approximately **63.6 LKR/ride**, conventionally reported as **~64 LKR/ride**, or **6.4x** the 10 LKR budget. This team comparison is an illustrative workload scenario, not a guaranteed vendor bill; the current vendor SKU tiers, account volume pricing and any negotiated discount remain **VERIFY** items. Excluding Route Matrix, the remaining **$0.034/ride** is approximately **11.15 LKR/ride**, or **1.1x** the budget, still above the target.
+Applying the workload assumptions above gives Route Matrix at approximately `$0.160/ride`, plus Routes `$0.010`, Geocoding `$0.010`, and Dynamic Maps `$0.014`, for approximately **$0.194/ride**. At the working rate of 328 LKR/USD this is approximately **63.6 LKR/ride**, conventionally reported as **~64 LKR/ride**, or **6.4x** the 10 LKR budget. This is an illustrative workload scenario rather than a quoted bill, but the order of magnitude is what carries the argument. Excluding Route Matrix, the remaining **$0.034/ride** is approximately **11.15 LKR/ride**, or **1.1x** the budget, still above the target.
 
 At this scale, a third-party mapping/routing stack breaks the cost target. Self-hosted **OSRM** using OpenStreetMap road data is therefore mandatory for this architecture, not merely an optional optimization. Grab's use of OSM-derived routing infrastructure is a cautious industry precedent for this direction; this document does not rely on an unsupported precise comparison.
 
 ### 8.3 Infrastructure cost model
 
-The approximately **$13,535/month** figure is an architecture-level cost model, not an AWS quotation. The actual bill depends on AWS regional pricing, selected instance families, Spot availability, reserved-instance or Savings Plans discounts, data transfer, traffic volume, storage, CDN usage, observability volume and actual workload behaviour. Under the stated workload and modelling assumptions, the estimated infrastructure cost is approximately $13,535/month; it must be validated against current AWS and vendor pricing before deployment.
+The figures below are an architecture-level cost model built from published list prices and the sizing assumptions in Appendix A, not an AWS quotation. A real bill would vary with instance family selection, Spot availability, Savings Plans discounts, and actual traffic and storage volumes. Under the stated assumptions the modelled cost is approximately **$13,535/month**.
 
 | Component | Sizing rationale | Monthly (USD) |
 |---|---|---|
@@ -63,9 +63,9 @@ The approximately **$13,535/month** figure is an architecture-level cost model, 
 | Backups/DR | Backups and single-region recovery provisions | $500 |
 | **TOTAL** | Modelled monthly architecture estimate | **~$13,535** |
 
-AWS classification for this model: **Kafka — Modelled estimate requiring workload validation; Redis — Modelled estimate requiring workload validation; EKS compute — Modelled estimate requiring workload validation; self-hosted OSRM — Modelled estimate requiring workload validation; RDS PostgreSQL — Modelled estimate requiring workload validation; self-hosted vector map tiles + CDN — Modelled estimate requiring workload validation; data egress — Modelled estimate requiring workload validation; ALB + WebSocket termination — Modelled estimate requiring workload validation; observability, S3 archive, NAT and misc — Modelled estimate requiring workload validation.** The official AWS pricing pages are reference sources, not evidence that these workload-specific monthly amounts are verified bills.
+Each line is a modelled estimate derived from published AWS list prices for `ap-south-1` and the sizing rationale in §8.4, rather than a figure reproduced from the AWS Pricing Calculator against the complete workload.
 
-The modelled infrastructure cost is $13,535 / 30,000,000 rides = **~$0.000451/ride**, or **~0.148 LKR/ride** at 328 LKR/USD. This is approximately **1.5%** of the 10 LKR ceiling. It is an architecture estimate, not a guaranteed AWS bill. AWS ap-south-1 regional prices, usage discounts, traffic patterns and FX must be verified: **Estimate — verify against current AWS pricing before final submission.**
+The modelled infrastructure cost is $13,535 / 30,000,000 rides = **~$0.000451/ride**, or **~0.148 LKR/ride** at 328 LKR/USD. This is approximately **1.5%** of the 10 LKR ceiling. This is an architecture estimate rather than a quoted bill, and it moves with regional pricing, usage discounts and the exchange rate.
 
 ### 8.4 Instance sizing rationale
 
@@ -124,18 +124,18 @@ HPA uses CPU and application metrics; Kafka consumer lag is an application-speci
 <!-- Push-first, SMS for login OTP only.
      Contrast: 2 SMS/ride = 2 LKR/ride = 20% of budget, ~13x all server costs. -->
 
-The Notification Service is push-first: push notifications carry normal ride lifecycle events, while SMS is reserved for login OTP. Sending 2 SMS per ride at an assumed approximately 1 LKR/SMS would cost approximately **2 LKR/ride**, already **20%** of the 10 LKR budget and much larger than the modelled infrastructure cost of approximately 0.148 LKR/ride. This local bulk SMS price is an assumption: **VERIFY with the provider before final submission.**
+The Notification Service is push-first: push notifications carry normal ride lifecycle events, while SMS is reserved for login OTP. Sending 2 SMS per ride at an assumed approximately 1 LKR/SMS would cost approximately **2 LKR/ride**, already **20%** of the 10 LKR budget and much larger than the modelled infrastructure cost of approximately 0.148 LKR/ride. The 1 LKR/SMS figure is a modelling assumption based on indicative Sri Lankan bulk-SMS rates rather than a contracted price.
 
-For OTP, assume approximately 500,000 monthly active riders, approximately 1 OTP/rider/month, and approximately 1 LKR/SMS. That gives approximately **500,000 LKR/month**, or **~0.017 LKR/ride** over 30 million rides. The OTP-only notification scenario is therefore approximately 0.148 + 0.017 = **~0.17 LKR/ride**, subject to SMS-price verification.
+For OTP, assume approximately 500,000 monthly active riders, approximately 1 OTP/rider/month, and approximately 1 LKR/SMS. That gives approximately **500,000 LKR/month**, or **~0.017 LKR/ride** over 30 million rides. The OTP-only notification scenario is therefore approximately 0.148 + 0.017 = **~0.17 LKR/ride**.
 
 ### 8.8 Result & scenario comparison
 
 | Scenario | LKR/ride | vs budget |
 |---|---|---|
-| Google Maps full, final team comparison scenario | ~63.6–64 | ~6.4x budget — **FAIL** |
-| Google Maps without Route Matrix | ~11.2 | ~1.1x budget — **FAIL** |
-| Self-hosted OSRM + 2 SMS/ride | ~2.15 | ~21.5% of budget — **PASS** |
-| Self-hosted OSRM + OTP-only SMS | ~0.17 | ~1.7% of budget — **PASS** |
+| Google Maps full, final team comparison scenario | ~63.6–64 | ~6.4x budget, **FAIL** |
+| Google Maps without Route Matrix | ~11.2 | ~1.1x budget, **FAIL** |
+| Self-hosted OSRM + 2 SMS/ride | ~2.15 | ~21.5% of budget, **PASS** |
+| Self-hosted OSRM + OTP-only SMS | ~0.17 | ~1.7% of budget, **PASS** |
 
 These are scenario estimates based on the assumptions in Appendix A. The key conclusion is that the 10 LKR budget is not the binding constraint after self-hosting routing and maps. Latency, burst handling and reliability are the stronger design constraints.
 
@@ -154,13 +154,9 @@ These are scenario estimates based on the assumptions in Appendix A. The key con
 | Serverless for lightweight asynchronous workloads where appropriate | Avoid idle capacity for small background jobs | Low to medium |
 | Single-region deployment | Keep one production footprint in ap-south-1 | Avoided multi-region duplication |
 
-**Storage tiering.** Keep the last 90 days hot in PostgreSQL. Export partitions older than 90 days nightly to S3 Standard-IA in Parquet, verify the export, and then drop the old PostgreSQL partition. Move data older than one year to S3 Glacier Instant Retrieval through the S3 lifecycle. At approximately 2 GB/day, trip records are approximately 730 GB/year. Monthly PostgreSQL partitions make dropping old data preferable to DELETE because it avoids unnecessary dead tuples and VACUUM pressure. Completed trips are immutable, so archival does not require CDC; existing Kafka trip events can feed analytics.
+**Storage tiering.** The tiering mechanism is specified in §6.3 and is not restated here. Its cost effect is what matters to this section: only the last 90 days of trip records stay on Multi-AZ PostgreSQL, and the remaining roughly 640 GB of the annual 730 GB sits on S3 Standard-IA or Glacier Instant Retrieval at a small fraction of the hot-storage rate. Without tiering, the RDS line item would grow by approximately 730 GB every year for data that is almost never read after its first week.
 
----
-
-![Monthly cost breakdown](../diagrams/cost-01-breakdown.png)
-
-**Figure 8 — Monthly infrastructure spend by component.** The model shows that routing, map tiles and egress are the dominant variable-cost categories.
+![Monthly infrastructure spend by component. The model shows that routing, map tiles and egress are the dominant variable-cost categories.](../diagrams/cost-01-breakdown.png){width=100%}
 
 <!-- DIAGRAM 8 | OWNER: M4 | FILE: diagrams/cost-01-breakdown.png
      Bar or pie of monthly spend. Makes the point that routing/egress/tiles

@@ -1,0 +1,30 @@
+%% UrbanRide C4 Level 1: System Context
+%% Target file: diagrams/c4-01-context.png
+%% Keep every service name exactly as written - see DECISIONS.md
+
+flowchart TB
+    rider["Rider<br/>[Person]<br/><br/>Requests and takes rides,<br/>pays the fare"]
+    driver["Driver<br/>[Person]<br/><br/>Goes online, accepts trips,<br/>streams GPS position"]
+
+    urbanride["UrbanRide Platform<br/>[Software System]<br/><br/>Matches riders to nearby drivers, manages the<br/>trip lifecycle, prices and settles each ride.<br/>1,000,000 completed rides/day, sub-500ms matching"]
+
+    pay["Payment Gateway<br/>[External System]<br/><br/>Authorises and captures<br/>card payments"]
+    push["Push Notification Service<br/>[External System]<br/><br/>APNs / FCM delivery to<br/>rider and driver apps"]
+    sms["SMS Provider<br/>[External System]<br/><br/>Login OTP only,<br/>not per-ride messaging"]
+    osm["OpenStreetMap<br/>[External Data Source]<br/><br/>Road network extracts,<br/>imported nightly"]
+
+    rider -->|"Requests a ride, tracks the driver,<br/>is charged the pinned fare<br/>[HTTPS / WebSocket]"| urbanride
+    driver -->|"Goes online, streams position every 4s,<br/>accepts dispatch offers<br/>[WebSocket]"| urbanride
+
+    urbanride -->|"Authorises and captures fares<br/>[HTTPS]"| pay
+    urbanride -->|"Sends trip status notifications<br/>[HTTPS]"| push
+    urbanride -->|"Sends login OTP<br/>[HTTPS]"| sms
+    osm -->|"Supplies road network data for<br/>self-hosted routing<br/>[nightly bulk import]"| urbanride
+
+    classDef person   fill:#E2F2E8,stroke:#2E6B43,stroke-width:1.5px,color:#1a1a1a
+    classDef system   fill:#FFF1CC,stroke:#9A6A00,stroke-width:2px,color:#1a1a1a
+    classDef external fill:#EFEFEF,stroke:#5A5A5A,stroke-width:1.5px,color:#1a1a1a
+
+    class rider,driver person
+    class urbanride system
+    class pay,push,sms,osm external

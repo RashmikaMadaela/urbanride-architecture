@@ -42,7 +42,7 @@ At 1,000,000 rides/day and approximately 2 KB per record, trip history grows by 
 
 Partition-drop is preferable to CDC for archival because completed trips are immutable: they are written once and do not need row-level change events. Dropping a partition is a metadata operation, whereas deleting tens of millions of rows creates dead tuples and VACUUM pressure on the primary. The existing `trip.events` Kafka stream can feed analytics without adding a CDC connector.
 
-### 6.4 Distributed transactions — the Saga pattern
+### 6.4 Distributed transactions: the Saga pattern
 
 <!-- EXPLICIT RUBRIC REQUIREMENT -->
 <!-- Why single ACID cannot span services; orchestration vs choreography and our
@@ -74,21 +74,13 @@ The geo-index is only a candidate source, not a reservation system. Assignment u
 
 Surge is eventually consistent, so the live multiplier may change between fare estimation and confirmation. Fare estimation therefore creates a `quote_id` containing the base fare and multiplier, stores it in Redis with a 60-second TTL, and returns it to the rider. The booking request carries that ID, and the Billing Service charges the pinned multiplier. An expired quote must be re-quoted before confirmation. This gives the rider price certainty while bounding our exposure to adverse surge movement.
 
----
-
-![Trip state machine](../diagrams/state-01-trip-lifecycle.png)
-
-**Figure 5 - Trip lifecycle state machine.** The authoritative lifecycle progresses from `Requested` through `Matched`, `DriverEnRoute`, `InProgress`, and `Completed`, with cancellation and payment-failure exits.
+![Trip lifecycle state machine. The authoritative lifecycle progresses from `Requested` through `Matched`, `DriverEnRoute`, `InProgress`, and `Completed`, with cancellation and payment-failure exits.](../diagrams/state-01-trip-lifecycle.png){width=100%}
 
 <!-- DIAGRAM 5 | OWNER: M3 | FILE: diagrams/state-01-trip-lifecycle.png
      Requested -> Matched -> DriverEnRoute -> InProgress -> Completed,
      plus Cancelled and PaymentFailed branches. -->
 
----
-
-![Booking saga with compensations](../diagrams/saga-01-booking.png)
-
-**Figure 6 - Booking Saga and compensating transactions.** Trip Management Service orchestrates the booking steps; failed reservations or payment authorisation invoke the listed compensations, with payment authorisation marked as the pivot.
+![Booking Saga and compensating transactions. Trip Management Service orchestrates the booking steps; failed reservations or payment authorisation invoke the listed compensations, with payment authorisation marked as the pivot.](../diagrams/saga-01-booking.png){width=100%}
 
 <!-- DIAGRAM 6 | OWNER: M3 | FILE: diagrams/saga-01-booking.png
      Happy path across services plus compensations on failure.
