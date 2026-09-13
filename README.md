@@ -134,15 +134,15 @@ source material there before writing. Don't edit these files.
 
 Owner: M1 (content) + M5 (production)
 
-- [ ] All ten services named identically in text, all diagrams, and deck
-- [ ] Every cost figure in the deck matches the ADD
-- [ ] All three C4 levels present and labelled as C4
-- [ ] All four resilience mechanisms explicitly named: circuit breakers, rate limiters, backpressure, DLQs
-- [ ] Saga pattern explicitly named and diagrammed
-- [ ] Storage tiering explicitly covered
-- [ ] Autoscaling triggers table present
-- [ ] Instance sizing rationale present
-- [ ] Assumptions register complete; nothing unverified presented as fact
+- [x] All ten services named identically in text, all diagrams, and deck — *ADD verified by M1 18:30; **deck still to check** once M5 builds it*
+- [ ] Every cost figure in the deck matches the ADD — *ADD is internally consistent (0.148 infra + 0.017 SMS = 0.17 LKR/ride; 63.6≈64 LKR Google Maps; $13,535/mo). Deck pending M5*
+- [x] All three C4 levels present and labelled as C4 — *all 8 diagrams render; `c4-03` rendered by M1 from M2's source*
+- [x] All four resilience mechanisms explicitly named: circuit breakers, rate limiters, backpressure, DLQs
+- [x] Saga pattern explicitly named and diagrammed
+- [x] Storage tiering explicitly covered
+- [x] Autoscaling triggers table present
+- [x] Instance sizing rationale present
+- [x] Assumptions register complete; nothing unverified presented as fact — *FX rate and bulk SMS rate both carry explicit VERIFY markers*
 - [ ] TOC regenerated after the final edit
 - [ ] Exported files opened and visually checked — diagrams not pixelated, tables not broken across pages
 - [ ] Both files named per submission requirements

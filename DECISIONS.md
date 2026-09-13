@@ -133,3 +133,7 @@ Move anything resolved up into "Locked decisions" and delete the row.
 | Sat 12 Sept | Initial decisions locked at kickoff | M1 |
 | Sun 13 Sept | D6 locked: Graphviz `.dot` at 200 DPI. Derived shared numbers unwrapped; FX rate and SMS rate still open for M4 | M1 |
 | Sun 13 Sept | Name drift from the research brief recorded — see section above. M3 and M2 to fix in their own files | M1 |
+| Sun 13 Sept 18:30 | **Name drift resolved by M1** under the final-say rule — all eight canonical names now used verbatim in every section and every diagram. M3's and M2's `.dot` sources were edited and re-rendered; M2's §5.8 heading and M3's §7.5 prose corrected. Nothing was rewritten beyond the name strings | M1 |
+| Sun 13 Sept 18:30 | §3.1 said push notifications "with SMS fallback" at trip state transitions, contradicting §8.7, §9 and §4.2 (SMS is OTP-only, and per-ride SMS would cost 2 LKR/ride = 20% of budget). Corrected to OTP-only with a pointer to §8.7 | M1 |
+| Sun 13 Sept 18:30 | M2's `c4-03-component-matching.dot` and `seq-01-ride-request.dot` were committed but never rendered; `c4-03` is rubric-required. Both rendered to PNG at 200 DPI from M2's unmodified sources | M1 |
+| Sun 13 Sept 18:30 | §11 references drafted by M1 to unblock assembly — **M5 must verify every URL resolves** before submission | M1 |
