@@ -2,12 +2,16 @@
 title: "UrbanRide Architecture Design Document"
 subtitle: "Scalable Microservices Backend for a Global Ride-Hailing Platform"
 author:
-  - "Rashmika (Architecture Lead & Integrator)"
-  - "Pamoth (Performance & Geospatial)"
-  - "Lakshika (Data & Resilience)"
-  - "Deepthi (Cost & Infrastructure)"
-  - "Pasindu (Deck & Assembly)"
-date: "13 September 2026"
+  - "KUMARASINGHE HRPR (230354T)"
+  - "LAKMAL H.M.P. (230361L)"
+  - "LAKSHIKA G. (230370M)"
+  - "MADAELA M.P.G.R.V.M. (230381X)"
+  - "MADHUBHASHINI M.D.D. (230384J)"
+date: |
+  CS3213 Advanced Software Engineering\
+  Group 9\
+  13 September 2026
+classoption: titlepage
 geometry: margin=2.5cm
 fontsize: 11pt
 linkcolor: blue
@@ -20,6 +24,33 @@ header-includes:
   - \usepackage{etoolbox}
   - \pretocmd{\tableofcontents}{\clearpage}{}{}
   - \apptocmd{\tableofcontents}{\clearpage}{}{}
+  # Title and subtitle centred; authors, module and date sit lower down.
+  - |
+    \renewcommand{\maketitle}{%
+      \begin{titlepage}
+      \centering
+      \vspace*{\fill}
+      {\LARGE\bfseries UrbanRide Architecture Design Document\par}
+      \vspace{1.1em}
+      {\large Scalable Microservices Backend for a Global Ride-Hailing Platform\par}
+      \vspace*{\fill}
+      {\small
+        \begin{tabular}{@{}l@{\hspace{2.5em}}l@{}}
+          KUMARASINGHE HRPR    & 230354T \\
+          LAKMAL H.M.P.        & 230361L \\
+          LAKSHIKA G.          & 230370M \\
+          MADAELA M.P.G.R.V.M. & 230381X \\
+          MADHUBHASHINI M.D.D. & 230384J \\
+        \end{tabular}\par}
+      \vspace{2.4em}
+      {CS3213 Advanced Software Engineering\par}
+      \vspace{0.35em}
+      {Group 9\par}
+      \vspace{1.4em}
+      {13 September 2026\par}
+      \vspace{2.2cm}
+      \end{titlepage}%
+    }
   # nobottomtitles* keeps a heading from being stranded at the foot of a page
   # with its content pushed to the next one.
   - \usepackage[nobottomtitles*]{titlesec}
