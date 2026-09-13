@@ -22,7 +22,7 @@ Replace `[[ name ]]` with actual names before the first commit.
 
 | Member | Role | Tasks | Files to edit |
 |---|---|---|---|
-| **M1** — `[[ name ]]` | Architecture Lead / Integrator | Set the canonical service names first — everyone else is blocked until this exists. Write the service decomposition and inter-service protocols. Draw C4 Context + Container. Run the final consistency pass across the whole document. | `add/01-executive-summary.md`<br>`add/02-introduction-scope.md`<br>`add/04-service-decomposition.md`<br>`add/10-risks-future.md`<br>`diagrams/c4-01-context.png`<br>`diagrams/c4-02-container.png` |
+| **M1** — Rashmika | Architecture Lead / Integrator | Set the canonical service names first — everyone else is blocked until this exists. Write the service decomposition and inter-service protocols. Draw C4 Context + Container. Run the final consistency pass across the whole document. | `add/01-executive-summary.md`<br>`add/02-introduction-scope.md`<br>`add/04-service-decomposition.md`<br>`add/10-risks-future.md`<br>`diagrams/c4-01-context.png`<br>`diagrams/c4-02-container.png` |
 | **M2** — `[[ name ]]` | Performance & Geospatial | Scale derivation table (§3.3 — every other section references these numbers, so publish them early). H3 matching design, latency budget, Kafka ingestion, backpressure, OSRM protection layers. Draw C4 Component for the Matching Engine. | `add/03-requirements-scale.md`<br>`add/05-performance-latency.md`<br>`diagrams/c4-03-component-matching.png`<br>`diagrams/seq-01-ride-request.png` *(optional)* |
 | **M3** — Lakshika | Data & Resilience | Storage selection, CAP positioning, tiering mechanism, Saga pattern and compensations, double-booking fix, quote pinning. All four resilience mechanisms. Build the trade-off summary table. | `add/06-data-design.md`<br>`add/07-resiliency.md`<br>`add/09-tradeoffs.md`<br>`diagrams/state-01-trip-lifecycle.png`<br>`diagrams/saga-01-booking.png`<br>`diagrams/resilience-01-layers.png` *(optional)* |
 | **M4** — `[[ name ]]` | Cost & Infrastructure | Full cost model, Google Maps comparison, instance sizing rationale, autoscaling triggers, spot vs on-demand placement. Verify the unverified figures: FX rate, regional cloud pricing, local bulk SMS rate. Maintain the assumptions register. | `add/08-infrastructure-cost.md`<br>`add/appendix-a-assumptions.md`<br>`diagrams/cost-01-breakdown.png` *(optional)* |
@@ -72,12 +72,19 @@ section files already reference them:
 | `resilience-01-layers.png` | M3 | Optional |
 | `cost-01-breakdown.png` | M4 | Optional |
 
-Keep the editable source (draw.io `.drawio`, Lucidchart link, etc.) in `diagrams/source/` so
+**Decision D6: we use Graphviz.** Keep the `.dot` source in `diagrams/source/` next to the PNG so
 someone else can fix a typo without redrawing.
 
-**Do not spend an hour learning a new diagramming tool today.** draw.io, Lucidchart, or clean
-PowerPoint shapes are all fine. The rubric grades whether the diagrams are standard C4, not how
-pretty they are.
+```bash
+sudo apt install graphviz
+dot -Tpng -Gdpi=200 diagrams/source/<name>.dot -o diagrams/<name>.png
+```
+
+Copy the `graph`/`node`/`edge` attribute block from an existing `.dot` rather than inventing a new
+palette — `diagrams/README.md` explains why a mixed visual style costs marks.
+
+**Do not spend an hour learning a new diagramming tool today.** The rubric grades whether the
+diagrams are standard C4, not how pretty they are.
 
 ---
 
@@ -126,7 +133,7 @@ source material there before writing. Don't edit these files.
 
 Owner: M1 (content) + M5 (production)
 
-- [ ] All nine services named identically in text, all diagrams, and deck
+- [ ] All ten services named identically in text, all diagrams, and deck
 - [ ] Every cost figure in the deck matches the ADD
 - [ ] All three C4 levels present and labelled as C4
 - [ ] All four resilience mechanisms explicitly named: circuit breakers, rate limiters, backpressure, DLQs

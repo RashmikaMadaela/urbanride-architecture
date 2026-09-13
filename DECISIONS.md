@@ -47,12 +47,12 @@ strongest cost arguments and it needs to be visible on the container diagram.
 
 | # | Decision | Choice | Rationale |
 |---|---|---|---|
-| D1 | Cloud provider | `[[ AWS ]]` | All research and pricing is AWS-based |
-| D2 | Region | `[[ ap-south-1 (Mumbai) ]]` | Closest to Sri Lanka; ~10–15% pricier than us-east-1 |
-| D3 | Deployment topology | `[[ Single-region ]]` | Multi-region roughly doubles cost for zero marks; documented as future work |
-| D4 | C4 Component diagram subject | `[[ Matching Engine ]]` | Most technically interesting; showcases the H3 + ETA two-stage design |
+| D1 | Cloud provider | AWS | All research and pricing is AWS-based |
+| D2 | Region | ap-south-1 (Mumbai) | Closest to Sri Lanka; ~10–15% pricier than us-east-1 |
+| D3 | Deployment topology | Single-region | Multi-region roughly doubles cost for zero marks; documented as future work |
+| D4 | C4 Component diagram subject | Matching Engine | Most technically interesting; showcases the H3 + ETA two-stage design |
 | D5 | Cost scope | Cloud infrastructure only | See wording below |
-| D6 | Diagramming tool | `[[ decide at kickoff ]]` | All three C4 diagrams must look visually consistent |
+| D6 | Diagramming tool | Graphviz `.dot` | Sources in `diagrams/source/`, rendered to PNG at 200 DPI. Three diagrams already exist in this format; a mixed toolchain would break the visual consistency `diagrams/README.md` requires |
 
 ### D5 — exact wording to use
 
@@ -61,6 +61,36 @@ strongest cost arguments and it needs to be visible on the container diagram.
 
 M1 puts this in `add/02-introduction-scope.md`. M4 references it in §8.1.
 **Don't paraphrase it differently in two places.**
+
+### D6 — how to render a diagram
+
+```bash
+dot -Tpng -Gdpi=200 diagrams/source/<name>.dot -o diagrams/<name>.png
+```
+
+Install with `sudo apt install graphviz`. Copy the `graph`/`node`/`edge` attribute block from an
+existing `.dot` file rather than inventing a new palette. Commit the `.dot` source next to the PNG.
+
+---
+
+## Name drift found in committed work
+
+Caught during the M1 consistency pass on Sun 13 Sept. These strings are **wrong** — they came from
+the research brief, which predates the canonical list above. Fix them in place; do not introduce
+a second spelling.
+
+| Wrong string | Canonical | Where it appears | Owner |
+|---|---|---|---|
+| `Billing & Payments` | `Billing Service` | `diagrams/source/saga-01-booking.dot` | M3 |
+| `Notifications` | `Notification Service` | `diagrams/source/saga-01-booking.dot`, `add/05-performance-latency.md` | M3, M2 |
+| `API Gateway / Edge` | `API Gateway` | `diagrams/source/resilience-01-layers.dot` | M3 |
+| `Trip Management` | `Trip Management Service` | `add/06-data-design.md`, `add/07-resiliency.md` | M3 |
+| `Routing/ETA`, `Routing / ETA` | `Routing Service` | `add/05-performance-latency.md`, `add/07-resiliency.md` | M2, M3 |
+| `Location Ingestion` | `Location Ingestion Service` | `add/06-data-design.md` | M3 |
+| `Surge Pricing` | `Surge Pricing Service` | `add/06-data-design.md` | M3 |
+| "nine services" | "ten services" | `README.md` checklist | M1 |
+
+Re-render any `.dot` you edit — the PNG is what the panel sees.
 
 ---
 
@@ -76,11 +106,11 @@ is derived from them.
 | Completed rides/day | 1,000,000 | Given |
 | Avg ride request rate | ~12 /sec | Derived |
 | Peak ride request rate | ~60 /sec | Derived |
-| Avg ride duration | `[[ 20 min ]]` | **Assumed** |
-| Peak concurrent online drivers | `[[ ~75,000 ]]` | Derived |
+| Avg ride duration | 20 min | **Assumed** |
+| Peak concurrent online drivers | ~75,000 | Derived |
 | GPS ping interval | 4 sec | Industry standard (Uber) |
-| Peak location writes/sec | `[[ ~19,000 ]]` | Derived |
-| Design ceiling | `[[ 25,000 /sec ]]` | +30% headroom |
+| Peak location writes/sec | ~19,000 | Derived |
+| Design ceiling | 25,000 /sec | +30% headroom |
 | FX rate LKR/USD | `[[ M4 to verify ]]` | ⚠️ Unverified |
 | Bulk SMS rate (LKR) | `[[ M4 to verify ]]` | ⚠️ Unverified |
 
@@ -101,3 +131,5 @@ Move anything resolved up into "Locked decisions" and delete the row.
 | When | What changed | Who |
 |---|---|---|
 | Sat 12 Sept | Initial decisions locked at kickoff | M1 |
+| Sun 13 Sept | D6 locked: Graphviz `.dot` at 200 DPI. Derived shared numbers unwrapped; FX rate and SMS rate still open for M4 | M1 |
+| Sun 13 Sept | Name drift from the research brief recorded — see section above. M3 and M2 to fix in their own files | M1 |

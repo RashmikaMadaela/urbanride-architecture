@@ -1,0 +1,123 @@
+digraph C4Container {
+  graph [rankdir=TB, bgcolor="white", pad="0.35", nodesep="0.35", ranksep="0.95", labelloc="t",
+         label="UrbanRide — C4 Level 2: Container\nEvery service-to-service call traverses an Envoy sidecar: circuit breaking, retries, timeouts, per-service quotas",
+         fontname="Arial", fontsize=18, newrank=true, splines=true];
+  node [shape=box, style="rounded,filled", fillcolor="#E8F1FA", color="#24557A", fontname="Arial", fontsize=10, margin="0.16,0.09"];
+  edge [color="#24557A", fontname="Arial", fontsize=9, arrowsize=0.7];
+
+  // ---------- Clients ----------
+  subgraph cluster_clients {
+    graph [label="Clients", fontname="Arial", fontsize=11, color="#2E6B43", style="rounded", bgcolor="#F5FAF7", margin=10];
+    riderapp  [label="Rider App", fillcolor="#E2F2E8", color="#2E6B43"];
+    driverapp [label="Driver App", fillcolor="#E2F2E8", color="#2E6B43"];
+  }
+
+  // ---------- Edge ----------
+  gateway [label="API Gateway  [Envoy + Go]\nAuthN · token-bucket rate limiting · routing · WebSocket termination\nOn-demand instances only",
+           fillcolor="#FFF1CC", color="#9A6A00", fontsize=11];
+
+  // ---------- Service tier ----------
+  subgraph cluster_accounts {
+    graph [label="Identity & Accounts", fontname="Arial", fontsize=10, color="#9A9A9A", style="rounded", bgcolor="#FBFBFB", margin=8];
+    rider  [label="Rider Service\nAccounts, request intake"];
+    driver [label="Driver Service\nProfiles, online state"];
+  }
+
+  subgraph cluster_dispatch {
+    graph [label="Dispatch", fontname="Arial", fontsize=10, color="#9A9A9A", style="rounded", bgcolor="#FBFBFB", margin=8];
+    location [label="Location Ingestion Service\nGPS firehose → H3 index\n~19,000 writes/sec"];
+    matching [label="Matching Engine\nH3 K-ring → ETA re-rank\n→ atomic assign"];
+    routing  [label="Routing Service  [OSRM]\nRoad-network ETA,\nin-memory OSM graph"];
+  }
+
+  subgraph cluster_trip {
+    graph [label="Trip, Pricing & Money", fontname="Arial", fontsize=10, color="#9A9A9A", style="rounded", bgcolor="#FBFBFB", margin=8];
+    trip    [label="Trip Management Service\nState machine +\nbooking Saga orchestrator"];
+    surge   [label="Surge Pricing Service\nPer-H3-cell multipliers\n[Flink]"];
+    billing [label="Billing Service\nFare, authorise, capture"];
+    notify  [label="Notification Service\nPush; SMS for OTP only\n[Lambda]"];
+  }
+
+  // ---------- Shared infrastructure ----------
+  redis [label="Redis  [3 shards + replicas]\nH3 geo-index (TTL 30s) · assignments\nsurge multipliers · pinned quotes\nNo persistence", shape=cylinder, fillcolor="#FCE8E6", color="#A33A32"];
+  kafka [label="Kafka  [3 brokers]\ndriver.location · trip.events\nbilling.events · *.dlq", shape=box3d, fillcolor="#FFF1CC", color="#9A6A00"];
+
+  // ---------- Durable stores ----------
+  subgraph cluster_data {
+    graph [label="Durable stores", fontname="Arial", fontsize=10, color="#9A9A9A", style="rounded", bgcolor="#FBFBFB", margin=8];
+    pgprof [label="PostgreSQL — Profiles\n[Multi-AZ + replica]", shape=cylinder];
+    pgtrip [label="PostgreSQL — Trips\n[Multi-AZ, partitioned by month]", shape=cylinder];
+    pgbill [label="PostgreSQL — Billing\n[Multi-AZ, separate instance]", shape=cylinder];
+    s3     [label="S3\nWarm Parquet + Cold Glacier", shape=cylinder];
+  }
+
+  // ---------- External ----------
+  osmx  [label="OpenStreetMap\nextracts", fillcolor="#EFEFEF", color="#5A5A5A"];
+  paygw [label="Payment Gateway", fillcolor="#EFEFEF", color="#5A5A5A"];
+  pushx [label="Push Service\n(APNs / FCM)", fillcolor="#EFEFEF", color="#5A5A5A"];
+  smsx  [label="SMS Provider", fillcolor="#EFEFEF", color="#5A5A5A"];
+
+  // ---------- Rank layers ----------
+  { rank=same; riderapp; driverapp; }
+  { rank=same; rider; driver; location; matching; trip; }
+  { rank=same; routing; surge; billing; notify; }
+  { rank=same; redis; kafka; }
+  { rank=same; pgprof; pgtrip; pgbill; s3; }
+  { rank=same; osmx; paygw; pushx; smsx; }
+
+  // ---------- Client → edge ----------
+  riderapp  -> gateway [label=" REST/HTTPS\l + WebSocket\l"];
+  driverapp -> gateway [label=" WebSocket\l (protobuf, 4s ping)\l"];
+
+  // ---------- Edge → services ----------
+  gateway -> rider    [label=" gRPC"];
+  gateway -> driver   [label=" gRPC"];
+  gateway -> location [label=" WebSocket\l frames\l"];
+  gateway -> matching [label=" gRPC\l ride request\l"];
+  gateway -> trip     [label=" gRPC\l trip status\l"];
+
+  // ---------- Synchronous service calls ----------
+  matching -> routing [label=" gRPC — OSRM table\l 30 ETAs, 100ms timeout\l haversine fallback\l"];
+  matching -> trip    [label=" gRPC\l create trip\l"];
+  trip     -> billing [label=" gRPC — authorise\l (Saga pivot)\l"];
+
+  // ---------- Redis ----------
+  location -> redis [label=" SADD geo:h3:8\l TTL 30s\l", color="#A33A32", fontcolor="#A33A32"];
+  matching -> redis [label=" SMEMBERS K-ring\l SET NX assign\l", color="#A33A32", fontcolor="#A33A32"];
+  surge    -> redis [label=" writes\l multipliers\l", color="#A33A32", fontcolor="#A33A32"];
+  billing  -> redis [label=" reads pinned\l quote\l", color="#A33A32", fontcolor="#A33A32"];
+
+  // ---------- Kafka ----------
+  location -> kafka [label=" driver.location\l 24 parts, key = H3 cell\l", color="#9A6A00", fontcolor="#9A6A00"];
+  trip     -> kafka [label=" trip.events\l", color="#9A6A00", fontcolor="#9A6A00"];
+  billing  -> kafka [label=" billing.events\l", color="#9A6A00", fontcolor="#9A6A00"];
+  kafka    -> surge  [label=" consumes\l driver.location\l", color="#9A6A00", fontcolor="#9A6A00"];
+  kafka    -> notify [label=" consumes\l trip.events\l", color="#9A6A00", fontcolor="#9A6A00"];
+
+  // ---------- Durable writes ----------
+  rider   -> pgprof [label=" SQL"];
+  driver  -> pgprof [label=" SQL"];
+  trip    -> pgtrip [label=" SQL"];
+  billing -> pgbill [label=" SQL"];
+  pgtrip  -> s3     [label=" nightly partition export\l to Parquet, then DROP\l"];
+
+  // ---------- External ----------
+  osmx    -> routing [label=" nightly OSM extract\l + graph rebuild\l", color="#5A5A5A", fontcolor="#5A5A5A"];
+  billing -> paygw   [label=" REST/HTTPS\l vendor-dictated\l", color="#5A5A5A", fontcolor="#5A5A5A"];
+  notify  -> pushx   [label=" HTTPS", color="#5A5A5A", fontcolor="#5A5A5A"];
+  notify  -> smsx    [label=" HTTPS\l OTP only\l", color="#5A5A5A", fontcolor="#5A5A5A"];
+
+  // ---------- Legend ----------
+  subgraph cluster_legend {
+    graph [label="Legend", fontname="Arial", fontsize=10, color="#9A9A9A", style="rounded", bgcolor="#FBFBFB", margin=8];
+    node [fontsize=9, margin="0.11,0.05"];
+    lg_cli  [label="Client app", fillcolor="#E2F2E8", color="#2E6B43"];
+    lg_svc  [label="Service container"];
+    lg_edge [label="Edge / broker", fillcolor="#FFF1CC", color="#9A6A00"];
+    lg_vol  [label="Volatile store\n(no persistence)", fillcolor="#FCE8E6", color="#A33A32", shape=cylinder];
+    lg_dur  [label="Durable store", shape=cylinder];
+    lg_ext  [label="External system", fillcolor="#EFEFEF", color="#5A5A5A"];
+    lg_cli -> lg_svc -> lg_edge -> lg_vol -> lg_dur -> lg_ext [style=invis];
+    { rank=same; lg_cli; lg_svc; lg_edge; lg_vol; lg_dur; lg_ext; }
+  }
+}

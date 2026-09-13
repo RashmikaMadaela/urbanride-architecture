@@ -1,0 +1,42 @@
+digraph C4Context {
+  graph [rankdir=TB, bgcolor="white", pad="0.35", nodesep="0.7", ranksep="1.1", labelloc="t", label="UrbanRide — C4 Level 1: System Context", fontname="Arial", fontsize=20];
+  node [shape=box, style="rounded,filled", fillcolor="#E8F1FA", color="#24557A", fontname="Arial", fontsize=11, margin="0.20,0.12"];
+  edge [color="#24557A", fontname="Arial", fontsize=9, arrowsize=0.8];
+
+  // ---- People ----
+  rider  [label="Rider\n[Person]\n\nRequests and takes rides,\npays the fare", fillcolor="#E2F2E8", color="#2E6B43"];
+  driver [label="Driver\n[Person]\n\nGoes online, accepts trips,\nstreams GPS position", fillcolor="#E2F2E8", color="#2E6B43"];
+
+  // ---- The system ----
+  urbanride [label="UrbanRide Platform\n[Software System]\n\nMatches riders to nearby drivers, manages the trip\nlifecycle, prices and settles each ride.\n1,000,000 completed rides/day · sub-500ms matching",
+             shape=box, style="rounded,filled", fillcolor="#FFF1CC", color="#9A6A00", fontsize=13, margin="0.30,0.22"];
+
+  // ---- External systems ----
+  pay  [label="Payment Gateway\n[External System]\n\nAuthorises and captures\ncard payments", fillcolor="#EFEFEF", color="#5A5A5A"];
+  push [label="Push Notification Service\n[External System]\n\nAPNs / FCM delivery to\nrider and driver apps", fillcolor="#EFEFEF", color="#5A5A5A"];
+  sms  [label="SMS Provider\n[External System]\n\nLogin OTP only —\nnot per-ride messaging", fillcolor="#EFEFEF", color="#5A5A5A"];
+  osm  [label="OpenStreetMap\n[External Data Source]\n\nRoad network extracts,\nimported nightly", fillcolor="#EFEFEF", color="#5A5A5A"];
+
+  // ---- Relationships ----
+  rider  -> urbanride [label="  Requests a ride, tracks the driver,\l  is charged the pinned fare\l  [HTTPS / WebSocket]\l"];
+  driver -> urbanride [label="  Goes online, streams position every 4s,\l  accepts dispatch offers\l  [WebSocket]\l"];
+
+  urbanride -> pay  [label="  Authorises and captures fares\l  [HTTPS]\l"];
+  urbanride -> push [label="  Sends trip status notifications\l  [HTTPS]\l"];
+  urbanride -> sms  [label="  Sends login OTP\l  [HTTPS]\l"];
+  osm -> urbanride  [label="  Supplies road network data for\l  self-hosted routing\l  [nightly bulk import]\l"];
+
+  { rank=same; rider; driver; }
+  { rank=same; pay; push; sms; osm; }
+
+  // ---- Legend ----
+  subgraph cluster_legend {
+    graph [label="Legend", fontname="Arial", fontsize=11, color="#9A9A9A", style="rounded", bgcolor="#FBFBFB", margin=10];
+    node [fontsize=9, margin="0.12,0.06"];
+    l_person [label="Person", fillcolor="#E2F2E8", color="#2E6B43"];
+    l_system [label="UrbanRide\n(system in scope)", fillcolor="#FFF1CC", color="#9A6A00"];
+    l_ext    [label="External system", fillcolor="#EFEFEF", color="#5A5A5A"];
+    l_person -> l_system -> l_ext [style=invis];
+    { rank=same; l_person; l_system; l_ext; }
+  }
+}
