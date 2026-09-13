@@ -158,9 +158,7 @@ These are scenario estimates based on the assumptions in Appendix A. The key con
 
 ---
 
-![](../diagrams/cost-01-breakdown.png){width=100%}
-
-**Figure 8: monthly infrastructure spend by component.** The model shows that routing, map tiles and egress are the dominant variable-cost categories.
+![Monthly infrastructure spend by component. The model shows that routing, map tiles and egress are the dominant variable-cost categories.](../diagrams/cost-01-breakdown.png){width=100%}
 
 <!-- DIAGRAM 8 | OWNER: M4 | FILE: diagrams/cost-01-breakdown.png
      Bar or pie of monthly spend. Makes the point that routing/egress/tiles

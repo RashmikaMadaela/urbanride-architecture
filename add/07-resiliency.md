@@ -51,9 +51,7 @@ Timeouts are bounded on every remote call; Matching to Routing Service uses a 10
 
 ---
 
-![](../diagrams/resilience-01-layers.png){width=100%}
-
-**Figure 7 - Resilience layers across the request path.** Rate limiting and load shedding begin at the edge, circuit breakers and timeouts contain synchronous failures in the service mesh, Kafka absorbs asynchronous bursts, and failed messages move to dead-letter topics after bounded retries.
+![Resilience layers across the request path. Rate limiting and load shedding begin at the edge, circuit breakers and timeouts contain synchronous failures in the service mesh, Kafka absorbs asynchronous bursts, and failed messages move to dead-letter topics after bounded retries.](../diagrams/resilience-01-layers.png){width=100%}
 
 <!-- DIAGRAM 7 (OPTIONAL - build only if time allows) | OWNER: M3
      FILE: diagrams/resilience-01-layers.png

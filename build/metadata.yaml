@@ -16,14 +16,26 @@ toc-depth: 3
 numbersections: false
 colorlinks: true
 header-includes:
-  - \usepackage{titlesec}
-  - \usepackage{booktabs}
-  - \usepackage{longtable}
-  - \newcommand{\sectionbreak}{\clearpage}
+  # nobottomtitles* keeps a heading from being stranded at the foot of a page
+  # with its content pushed to the next one.
+  - \usepackage[nobottomtitles*]{titlesec}
+  - \renewcommand{\bottomtitlespace}{0.18\textheight}
   - \titleformat{\section}{\Large\bfseries}{}{0pt}{}
-  - \titlespacing*{\section}{0pt}{0pt}{16pt}
-  - \titlespacing*{\subsection}{0pt}{18pt}{6pt}
+  - \titlespacing*{\section}{0pt}{22pt}{12pt}
+  - \titlespacing*{\subsection}{0pt}{16pt}{6pt}
   - \setlength{\parskip}{6pt}
-  - \usepackage{float}
-  - \makeatletter\def\fps@figure{htbp}\makeatother
+  # Never leave a single line of a paragraph orphaned across a page break.
+  - \clubpenalty=10000
+  - \widowpenalty=10000
+  - \displaywidowpenalty=10000
+  - \brokenpenalty=10000
+  # Let short pages end short rather than stretching the gaps between blocks.
+  - \raggedbottom
+  # Keep every figure inside the section it belongs to.
+  - \usepackage[section]{placeins}
+  # Give floats room to settle instead of dumping them all at the end.
+  - \renewcommand{\topfraction}{0.9}
+  - \renewcommand{\bottomfraction}{0.8}
+  - \renewcommand{\textfraction}{0.07}
+  - \renewcommand{\floatpagefraction}{0.75}
 ---
