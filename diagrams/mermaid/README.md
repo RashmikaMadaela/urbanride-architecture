@@ -20,6 +20,30 @@ parses. Preview or tweak at <https://mermaid.live> before importing if you want.
 `cost-01-breakdown.png` is not here. It is a bar chart rather than a diagram, and Mermaid has no
 stable chart type for it. Rebuild it in Lucidchart's native chart tool or in a spreadsheet.
 
+## Simplified versions
+
+The container, component and resilience diagrams were the three dense ones, so they are
+deliberately sparser than the Graphviz originals. The structure is unchanged; what was cut is
+label verbosity:
+
+- **Node labels** are names only, or a name plus one short qualifier.
+- **Edge labels** are protocols only. Detail such as timeouts, TTLs, partition counts, cache keys
+  and fallback conditions now lives only in the prose that already stated it, in sections 4.4,
+  5.2, 5.6, 6.1 and 7.
+- The container diagram keeps all ten services and every data store, because that is what a C4
+  container diagram is for, but drops the Push and SMS providers, which already appear on the
+  context diagram at Figure 1.
+
+Two things must survive any further trimming, since both are explicit marking criteria: every
+edge on the container diagram carries a protocol, and the resilience diagram names all four
+mechanisms (rate limiting, circuit breakers, backpressure, dead-letter topics).
+
+## One Mermaid gotcha worth knowing
+
+A comment line containing only `%%` breaks the parser. It is read as the opening of a
+`%%{ ... }%%` directive block, which then swallows everything up to the diagram declaration.
+Keep some text after the `%%` on every comment line.
+
 ## Why flowchart rather than Mermaid's C4 syntax
 
 Mermaid does have dedicated `C4Context` / `C4Container` / `C4Component` diagram types. They are

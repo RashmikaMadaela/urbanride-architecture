@@ -1,33 +1,34 @@
 %% UrbanRide resilience layers across the request path
 %% Target file: diagrams/resilience-01-layers.png
-%% Covers all four named mechanisms - see ADD section 7.
+%% Simplified: one mechanism per box, straight left-to-right request path,
+%% with the two failure-containment exits dropping below it.
+%% All four named mechanisms appear: rate limiters, circuit breakers,
+%% backpressure, dead-letter queues. Detail is in ADD section 7.
 
 flowchart LR
     client["Rider / Driver<br/>clients"]
-    edgeLayer["API Gateway<br/><b>Rate limiter</b><br/>Token bucket + load shedding"]
-    mesh["Envoy service mesh<br/><b>Circuit breakers</b><br/>Timeouts + bulkheads"]
-    service["Core services<br/>Matching Engine / Trip Management Service / Billing Service"]
-    kafka["Kafka buffer<br/><b>Backpressure</b><br/>Consumer lag autoscaling"]
-    dlq["Retry policy<br/>Exponential backoff<br/><b>Dead-letter topics</b>"]
-    data["Redis + PostgreSQL<br/>Rebuildable index + durable state"]
-    fallback["Graceful degradation<br/>Haversine ETA fallback"]
+    gw["API Gateway<br/><b>Rate limiting</b>"]
+    mesh["Envoy sidecar<br/><b>Circuit breakers</b>"]
+    svc["Core services"]
+    kafka["Kafka<br/><b>Backpressure</b>"]
+    data[("Redis + PostgreSQL")]
 
-    client -->|"HTTPS / WebSocket"| edgeLayer
-    edgeLayer -->|"allowed request"| mesh
-    edgeLayer -->|"events / burst buffer"| kafka
-    mesh -->|"bounded gRPC"| service
-    service -->|"async events"| kafka
-    service -->|"bounded data calls"| data
-    kafka -->|"after max retries"| dlq
-    mesh -->|"upstream timeout"| fallback
-    fallback -.->|"reduced match quality"| service
+    dlq["<b>Dead-letter topics</b><br/>after max retries"]
+    fallback["Haversine fallback<br/>on upstream timeout"]
+
+    client --> gw --> mesh --> svc
+    svc --> kafka
+    svc --> data
+    kafka --> dlq
+    mesh --> fallback
+    fallback -.->|"degraded ranking"| svc
 
     classDef clientNode fill:#FFF1CC,stroke:#9A6A00,stroke-width:1.5px,color:#1a1a1a
     classDef protection fill:#E2F2E8,stroke:#2E6B43,stroke-width:1.5px,color:#1a1a1a
-    classDef core       fill:#DCECF8,stroke:#24557A,stroke-width:1.5px,color:#1a1a1a
+    classDef core       fill:#E8F1FA,stroke:#24557A,stroke-width:1.5px,color:#1a1a1a
     classDef degraded   fill:#FCE8E6,stroke:#A33A32,stroke-width:1.5px,color:#1a1a1a
 
     class client clientNode
-    class edgeLayer,mesh,kafka,data protection
-    class service core
+    class gw,mesh,kafka protection
+    class svc,data core
     class dlq,fallback degraded
