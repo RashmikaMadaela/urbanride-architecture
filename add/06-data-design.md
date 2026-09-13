@@ -76,7 +76,7 @@ Surge is eventually consistent, so the live multiplier may change between fare e
 
 ---
 
-![Trip state machine](../diagrams/state-01-trip-lifecycle.png)
+![](../diagrams/state-01-trip-lifecycle.png){width=100%}
 
 **Figure 5 - Trip lifecycle state machine.** The authoritative lifecycle progresses from `Requested` through `Matched`, `DriverEnRoute`, `InProgress`, and `Completed`, with cancellation and payment-failure exits.
 
@@ -86,7 +86,7 @@ Surge is eventually consistent, so the live multiplier may change between fare e
 
 ---
 
-![Booking saga with compensations](../diagrams/saga-01-booking.png)
+![](../diagrams/saga-01-booking.png){width=100%}
 
 **Figure 6 - Booking Saga and compensating transactions.** Trip Management Service orchestrates the booking steps; failed reservations or payment authorisation invoke the listed compensations, with payment authorisation marked as the pivot.
 

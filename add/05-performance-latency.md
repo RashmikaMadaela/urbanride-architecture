@@ -129,7 +129,7 @@ If OSRM is unavailable or its response breaches a 100ms timeout (enforced by the
 
 ---
 
-![C4 Level 3 - Matching Engine Component](../diagrams/c4-03-component-matching.png)
+![](../diagrams/c4-03-component-matching.png){width=100%}
 
 **Figure 3 — C4 Level 3: Component view of the Matching Engine.** Shows the internal components of the Matching Engine: the Request Handler receives ride requests from the API Gateway via gRPC; the H3 Indexer converts rider coordinates to cell IDs and computes K-ring expansion; the Redis Candidate Fetcher performs pipelined SMEMBERS queries; the ETA Client calls the Routing Service (with the grid-snapped Redis cache in front and the Haversine fallback path); the Ranking Module sorts candidates by road-network travel time; and the Assignment CAS Module atomically claims the selected driver in Redis.
 
@@ -140,7 +140,7 @@ If OSRM is unavailable or its response breaches a 100ms timeout (enforced by the
 
 ---
 
-![Ride request sequence](../diagrams/seq-01-ride-request.png)
+![](../diagrams/seq-01-ride-request.png){height=20cm}
 
 **Figure 4 — End-to-end ride request sequence.** Annotated sequence diagram showing the full ride request flow from Rider through API Gateway → Matching Engine → Redis → Routing Service (OSRM) → Trip Management Service → Billing Service → Notification Service, with latency budget figures at each hop.
 

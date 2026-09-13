@@ -137,7 +137,7 @@ ones.
 
 ---
 
-![C4 Level 1 - System Context](../diagrams/c4-01-context.png)
+![](../diagrams/c4-01-context.png){width=100%}
 
 **Figure 1 — C4 Level 1: System Context.** UrbanRide as a single system, showing the two classes
 of user and the four external systems it depends on. Self-hosting routing on OpenStreetMap data,
@@ -151,7 +151,7 @@ inside the 10 LKR per ride ceiling (§8.2).
 
 ---
 
-![C4 Level 2 - Container](../diagrams/c4-02-container.png)
+![](../diagrams/c4-02-container.png){width=100%}
 
 **Figure 2 — C4 Level 2: Container.** All ten services with their data stores and the protocol on
 every connection. The two paths worth tracing are the booking path — rider to `API Gateway` to
