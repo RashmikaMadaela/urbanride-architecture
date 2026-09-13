@@ -1,0 +1,47 @@
+%% UrbanRide C4 Level 3: Component view of the Matching Engine
+%% Target file: diagrams/c4-03-component-matching.png
+%% Scope: internals of the Matching Engine container only.
+
+flowchart TB
+    gw["API Gateway<br/>[external container]"]
+
+    subgraph me["Matching Engine"]
+        rh["Request Handler<br/>Receives ride-request via gRPC.<br/>Validates payload, forwards to H3 Indexer."]
+        h3["H3 Indexer<br/>Converts rider lat/lng to res-8 cell ID.<br/>Computes K-ring(1) = 7 cells;<br/>expands to K-ring(2) = 19 cells<br/>if candidate count &lt; 5."]
+        cf["Redis Candidate Fetcher<br/>Pipelined SMEMBERS across K-ring cells.<br/>Returns 10-50 candidate driver IDs (~2-5ms)."]
+        eta["ETA Client<br/>Calls Routing Service via gRPC,<br/>OSRM table endpoint (30 origins, 1 call).<br/>Checks grid-snapped Redis cache first<br/>(key: H3 res-9 origin:dest, TTL 5 min).<br/>Falls back to Haversine if timeout &gt; 100ms."]
+        rank["Ranking Module<br/>Sorts candidates by road-network ETA.<br/>Selects top candidate."]
+        cas["Assignment CAS Module<br/>SET NX driver:{id}:assignment to trip_id.<br/>Atomic Redis compare-and-swap;<br/>prevents double-booking.<br/>Dispatches offer to driver via WebSocket."]
+        hav["Haversine Fallback<br/>Straight-line rank.<br/>Activates when OSRM<br/>timeout &gt; 100ms."]
+    end
+
+    geo[("Redis<br/>H3 geo-index + assignments<br/>[external container]")]
+    cache[("Redis<br/>ETA cache, res-9 grid-snapped keys<br/>[external container, same Redis cluster]")]
+    rs["Routing Service  [OSRM]<br/>Road-network ETA<br/>[external container]"]
+    tms["Trip Management Service<br/>[external container]"]
+
+    gw -->|"gRPC<br/>ride request"| rh
+    rh -->|"rider lat/lng"| h3
+    h3 -->|"7-19 H3 cell IDs"| cf
+    cf -->|"SMEMBERS (pipelined)"| geo
+    geo -->|"driver ID sets"| cf
+    cf -->|"~30 candidate driver IDs"| eta
+    eta -->|"gRPC: OSRM table<br/>30 origins, 1 call<br/>100ms timeout"| rs
+    rs -->|"duration_sec[]"| eta
+    eta -->|"GET route:res9:res9<br/>TTL 5 min"| cache
+    eta -.->|"fallback"| hav
+    hav -.->|"degraded ranking"| rank
+    eta -->|"ETA-annotated candidates"| rank
+    rank -->|"top candidate"| cas
+    cas -->|"SET NX assign<br/>trip_id, TTL 30s"| geo
+    cas -->|"gRPC: create trip<br/>status = Matched"| tms
+
+    classDef component fill:#E8F1FA,stroke:#24557A,stroke-width:1.5px,color:#1a1a1a
+    classDef externalc fill:#FFF1CC,stroke:#9A6A00,stroke-width:1.5px,color:#1a1a1a
+    classDef volatile  fill:#FCE8E6,stroke:#A33A32,stroke-width:1.5px,color:#1a1a1a
+    classDef degraded  fill:#FFF1CC,stroke:#9A6A00,stroke-width:1.5px,color:#1a1a1a
+
+    class rh,h3,cf,eta,rank,cas component
+    class gw,rs,tms externalc
+    class geo,cache volatile
+    class hav degraded

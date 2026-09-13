@@ -1,0 +1,95 @@
+%% UrbanRide C4 Level 2: Container
+%% Target file: diagrams/c4-02-container.png
+%% Every edge must keep its protocol label - that is an explicit rubric item.
+%% Note: all service-to-service calls traverse an Envoy sidecar
+%% (circuit breaking, retries, timeouts, per-service quotas).
+
+flowchart TB
+    subgraph clients["Clients"]
+        riderapp["Rider App"]
+        driverapp["Driver App"]
+    end
+
+    gateway["API Gateway  [Envoy + Go]<br/>AuthN, token-bucket rate limiting,<br/>routing, WebSocket termination<br/>On-demand instances only"]
+
+    subgraph accounts["Identity &amp; Accounts"]
+        rider["Rider Service<br/>Accounts, request intake"]
+        driver["Driver Service<br/>Profiles, online state"]
+    end
+
+    subgraph dispatch["Dispatch"]
+        location["Location Ingestion Service<br/>GPS firehose to H3 index<br/>~19,000 writes/sec"]
+        matching["Matching Engine<br/>H3 K-ring, ETA re-rank,<br/>atomic assign"]
+        routing["Routing Service  [OSRM]<br/>Road-network ETA,<br/>in-memory OSM graph"]
+    end
+
+    subgraph tripgrp["Trip, Pricing &amp; Money"]
+        trip["Trip Management Service<br/>State machine and<br/>booking Saga orchestrator"]
+        surge["Surge Pricing Service<br/>Per-H3-cell multipliers<br/>[Flink]"]
+        billing["Billing Service<br/>Fare, authorise, capture"]
+        notify["Notification Service<br/>Push; SMS for OTP only<br/>[Lambda]"]
+    end
+
+    redis[("Redis  [3 shards + replicas]<br/>H3 geo-index TTL 30s, assignments,<br/>surge multipliers, pinned quotes<br/>No persistence")]
+    kafka["Kafka  [3 brokers]<br/>driver.location, trip.events,<br/>billing.events, *.dlq"]
+
+    subgraph stores["Durable stores"]
+        pgprof[("PostgreSQL: Profiles<br/>[Multi-AZ + replica]")]
+        pgtrip[("PostgreSQL: Trips<br/>[Multi-AZ, partitioned by month]")]
+        pgbill[("PostgreSQL: Billing<br/>[Multi-AZ, separate instance]")]
+        s3[("S3<br/>Warm Parquet + Cold Glacier")]
+    end
+
+    osmx["OpenStreetMap<br/>extracts"]
+    paygw["Payment Gateway"]
+    pushx["Push Service<br/>(APNs / FCM)"]
+    smsx["SMS Provider"]
+
+    riderapp  -->|"REST/HTTPS<br/>+ WebSocket"| gateway
+    driverapp -->|"WebSocket<br/>(protobuf, 4s ping)"| gateway
+
+    gateway -->|"gRPC"| rider
+    gateway -->|"gRPC"| driver
+    gateway -->|"WebSocket<br/>frames"| location
+    gateway -->|"gRPC<br/>ride request"| matching
+    gateway -->|"gRPC<br/>trip status"| trip
+
+    matching -->|"gRPC: OSRM table<br/>30 ETAs, 100ms timeout<br/>haversine fallback"| routing
+    matching -->|"gRPC<br/>create trip"| trip
+    trip -->|"gRPC: authorise<br/>(Saga pivot)"| billing
+
+    location -->|"SADD geo:h3:8<br/>TTL 30s"| redis
+    matching -->|"SMEMBERS K-ring<br/>SET NX assign"| redis
+    surge -->|"writes<br/>multipliers"| redis
+    billing -->|"reads pinned<br/>quote"| redis
+
+    location -->|"driver.location<br/>24 parts, key = H3 cell"| kafka
+    trip -->|"trip.events"| kafka
+    billing -->|"billing.events"| kafka
+    kafka -->|"consumes<br/>driver.location"| surge
+    kafka -->|"consumes<br/>trip.events"| notify
+
+    rider -->|"SQL"| pgprof
+    driver -->|"SQL"| pgprof
+    trip -->|"SQL"| pgtrip
+    billing -->|"SQL"| pgbill
+    pgtrip -->|"nightly partition export<br/>to Parquet, then DROP"| s3
+
+    osmx -->|"nightly OSM extract<br/>+ graph rebuild"| routing
+    billing -->|"REST/HTTPS<br/>vendor-dictated"| paygw
+    notify -->|"HTTPS"| pushx
+    notify -->|"HTTPS<br/>OTP only"| smsx
+
+    classDef client   fill:#E2F2E8,stroke:#2E6B43,stroke-width:1.5px,color:#1a1a1a
+    classDef edgeNode fill:#FFF1CC,stroke:#9A6A00,stroke-width:2px,color:#1a1a1a
+    classDef service  fill:#E8F1FA,stroke:#24557A,stroke-width:1.5px,color:#1a1a1a
+    classDef volatile fill:#FCE8E6,stroke:#A33A32,stroke-width:1.5px,color:#1a1a1a
+    classDef durable  fill:#E8F1FA,stroke:#24557A,stroke-width:1.5px,color:#1a1a1a
+    classDef external fill:#EFEFEF,stroke:#5A5A5A,stroke-width:1.5px,color:#1a1a1a
+
+    class riderapp,driverapp client
+    class gateway,kafka edgeNode
+    class rider,driver,location,matching,routing,trip,surge,billing,notify service
+    class redis volatile
+    class pgprof,pgtrip,pgbill,s3 durable
+    class osmx,paygw,pushx,smsx external

@@ -1,0 +1,28 @@
+%% UrbanRide trip lifecycle state machine
+%% Target file: diagrams/state-01-trip-lifecycle.png
+%% Owned by the Trip Management Service - see ADD section 6.4.
+
+stateDiagram-v2
+    direction LR
+
+    [*] --> Requested
+    Requested --> Matched
+    Matched --> DriverEnRoute
+    DriverEnRoute --> InProgress
+    InProgress --> Completed
+    Completed --> [*]
+
+    Requested --> Cancelled: rider / timeout
+    Matched --> Cancelled: rider / timeout
+    DriverEnRoute --> Cancelled: cancellation
+    InProgress --> Cancelled: cancellation
+    Cancelled --> [*]
+
+    Matched --> PaymentFailed: payment rejected
+    PaymentFailed --> Requested: retry payment / re-match
+
+    classDef terminalOk   fill:#E2F2E8,stroke:#2E6B43,stroke-width:2px,color:#1a1a1a
+    classDef terminalBad  fill:#FCE8E6,stroke:#A33A32,stroke-width:2px,color:#1a1a1a
+
+    class Completed terminalOk
+    class Cancelled,PaymentFailed terminalBad
