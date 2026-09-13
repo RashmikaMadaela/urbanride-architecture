@@ -1,5 +1,5 @@
 digraph C4Context {
-  graph [rankdir=TB, bgcolor="white", pad="0.35", nodesep="0.7", ranksep="1.1", labelloc="t", label="UrbanRide — C4 Level 1: System Context", fontname="Arial", fontsize=20];
+  graph [rankdir=TB, bgcolor="white", pad="0.35", nodesep="0.7", ranksep="1.1", labelloc="t", label="UrbanRide C4 Level 1: System Context", fontname="Arial", fontsize=20];
   node [shape=box, style="rounded,filled", fillcolor="#E8F1FA", color="#24557A", fontname="Arial", fontsize=11, margin="0.20,0.12"];
   edge [color="#24557A", fontname="Arial", fontsize=9, arrowsize=0.8];
 
@@ -14,7 +14,7 @@ digraph C4Context {
   // ---- External systems ----
   pay  [label="Payment Gateway\n[External System]\n\nAuthorises and captures\ncard payments", fillcolor="#EFEFEF", color="#5A5A5A"];
   push [label="Push Notification Service\n[External System]\n\nAPNs / FCM delivery to\nrider and driver apps", fillcolor="#EFEFEF", color="#5A5A5A"];
-  sms  [label="SMS Provider\n[External System]\n\nLogin OTP only —\nnot per-ride messaging", fillcolor="#EFEFEF", color="#5A5A5A"];
+  sms  [label="SMS Provider\n[External System]\n\nLogin OTP only,\nnot per-ride messaging", fillcolor="#EFEFEF", color="#5A5A5A"];
   osm  [label="OpenStreetMap\n[External Data Source]\n\nRoad network extracts,\nimported nightly", fillcolor="#EFEFEF", color="#5A5A5A"];
 
   // ---- Relationships ----

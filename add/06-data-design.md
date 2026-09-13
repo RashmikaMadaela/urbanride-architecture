@@ -42,7 +42,7 @@ At 1,000,000 rides/day and approximately 2 KB per record, trip history grows by 
 
 Partition-drop is preferable to CDC for archival because completed trips are immutable: they are written once and do not need row-level change events. Dropping a partition is a metadata operation, whereas deleting tens of millions of rows creates dead tuples and VACUUM pressure on the primary. The existing `trip.events` Kafka stream can feed analytics without adding a CDC connector.
 
-### 6.4 Distributed transactions — the Saga pattern
+### 6.4 Distributed transactions: the Saga pattern
 
 <!-- EXPLICIT RUBRIC REQUIREMENT -->
 <!-- Why single ACID cannot span services; orchestration vs choreography and our

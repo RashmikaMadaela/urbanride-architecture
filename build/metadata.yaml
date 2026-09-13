@@ -1,12 +1,12 @@
 ---
-title: "UrbanRide — Architecture Design Document"
+title: "UrbanRide Architecture Design Document"
 subtitle: "Scalable Microservices Backend for a Global Ride-Hailing Platform"
 author:
-  - "Rashmika — Architecture Lead & Integrator"
-  - "Pamoth — Performance & Geospatial"
-  - "Lakshika — Data & Resilience"
-  - "Deepthi — Cost & Infrastructure"
-  - "Pasindu — Deck & Assembly"
+  - "Rashmika (Architecture Lead & Integrator)"
+  - "Pamoth (Performance & Geospatial)"
+  - "Lakshika (Data & Resilience)"
+  - "Deepthi (Cost & Infrastructure)"
+  - "Pasindu (Deck & Assembly)"
 date: "13 September 2026"
 geometry: margin=2.5cm
 fontsize: 11pt
@@ -14,4 +14,16 @@ linkcolor: blue
 toc: true
 toc-depth: 3
 numbersections: false
+colorlinks: true
+header-includes:
+  - \usepackage{titlesec}
+  - \usepackage{booktabs}
+  - \usepackage{longtable}
+  - \newcommand{\sectionbreak}{\clearpage}
+  - \titleformat{\section}{\Large\bfseries}{}{0pt}{}
+  - \titlespacing*{\section}{0pt}{0pt}{16pt}
+  - \titlespacing*{\subsection}{0pt}{18pt}{6pt}
+  - \setlength{\parskip}{6pt}
+  - \usepackage{float}
+  - \makeatletter\def\fps@figure{htbp}\makeatother
 ---

@@ -1,6 +1,6 @@
 digraph C4Container {
   graph [rankdir=TB, bgcolor="white", pad="0.35", nodesep="0.35", ranksep="0.95", labelloc="t",
-         label="UrbanRide — C4 Level 2: Container\nEvery service-to-service call traverses an Envoy sidecar: circuit breaking, retries, timeouts, per-service quotas",
+         label="UrbanRide C4 Level 2: Container\nEvery service-to-service call traverses an Envoy sidecar: circuit breaking, retries, timeouts, per-service quotas",
          fontname="Arial", fontsize=18, newrank=true, splines=true];
   node [shape=box, style="rounded,filled", fillcolor="#E8F1FA", color="#24557A", fontname="Arial", fontsize=10, margin="0.16,0.09"];
   edge [color="#24557A", fontname="Arial", fontsize=9, arrowsize=0.7];
@@ -45,9 +45,9 @@ digraph C4Container {
   // ---------- Durable stores ----------
   subgraph cluster_data {
     graph [label="Durable stores", fontname="Arial", fontsize=10, color="#9A9A9A", style="rounded", bgcolor="#FBFBFB", margin=8];
-    pgprof [label="PostgreSQL — Profiles\n[Multi-AZ + replica]", shape=cylinder];
-    pgtrip [label="PostgreSQL — Trips\n[Multi-AZ, partitioned by month]", shape=cylinder];
-    pgbill [label="PostgreSQL — Billing\n[Multi-AZ, separate instance]", shape=cylinder];
+    pgprof [label="PostgreSQL: Profiles\n[Multi-AZ + replica]", shape=cylinder];
+    pgtrip [label="PostgreSQL: Trips\n[Multi-AZ, partitioned by month]", shape=cylinder];
+    pgbill [label="PostgreSQL: Billing\n[Multi-AZ, separate instance]", shape=cylinder];
     s3     [label="S3\nWarm Parquet + Cold Glacier", shape=cylinder];
   }
 
@@ -77,9 +77,9 @@ digraph C4Container {
   gateway -> trip     [label=" gRPC\l trip status\l"];
 
   // ---------- Synchronous service calls ----------
-  matching -> routing [label=" gRPC — OSRM table\l 30 ETAs, 100ms timeout\l haversine fallback\l"];
+  matching -> routing [label=" gRPC: OSRM table\l 30 ETAs, 100ms timeout\l haversine fallback\l"];
   matching -> trip    [label=" gRPC\l create trip\l"];
-  trip     -> billing [label=" gRPC — authorise\l (Saga pivot)\l"];
+  trip     -> billing [label=" gRPC: authorise\l (Saga pivot)\l"];
 
   // ---------- Redis ----------
   location -> redis [label=" SADD geo:h3:8\l TTL 30s\l", color="#A33A32", fontcolor="#A33A32"];

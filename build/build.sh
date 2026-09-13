@@ -55,14 +55,14 @@ fi
 
 # DOCX first - it needs no LaTeX, so it almost always works.
 echo "==> Building DOCX..."
-if pandoc "$OUT" --resource-path=..:../add:../diagrams -o UrbanRide_ADD.docx; then
+if pandoc "$OUT" --resource-path=..:../add:../diagrams --shift-heading-level-by=-1 -o UrbanRide_ADD.docx; then
   echo "    build/UrbanRide_ADD.docx"
 else
   echo "    DOCX build failed"
 fi
 
 echo "==> Building PDF..."
-if pandoc "$OUT" --resource-path=..:../add:../diagrams --pdf-engine=xelatex -o UrbanRide_ADD.pdf 2>/tmp/pdf_err.log; then
+if pandoc "$OUT" --resource-path=..:../add:../diagrams --shift-heading-level-by=-1 --pdf-engine=xelatex -o UrbanRide_ADD.pdf 2>/tmp/pdf_err.log; then
   echo "    build/UrbanRide_ADD.pdf"
 else
   echo ""

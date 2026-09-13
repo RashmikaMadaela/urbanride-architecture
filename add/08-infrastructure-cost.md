@@ -63,9 +63,9 @@ The approximately **$13,535/month** figure is an architecture-level cost model, 
 | Backups/DR | Backups and single-region recovery provisions | $500 |
 | **TOTAL** | Modelled monthly architecture estimate | **~$13,535** |
 
-AWS classification for this model: **Kafka — Modelled estimate requiring workload validation; Redis — Modelled estimate requiring workload validation; EKS compute — Modelled estimate requiring workload validation; self-hosted OSRM — Modelled estimate requiring workload validation; RDS PostgreSQL — Modelled estimate requiring workload validation; self-hosted vector map tiles + CDN — Modelled estimate requiring workload validation; data egress — Modelled estimate requiring workload validation; ALB + WebSocket termination — Modelled estimate requiring workload validation; observability, S3 archive, NAT and misc — Modelled estimate requiring workload validation.** The official AWS pricing pages are reference sources, not evidence that these workload-specific monthly amounts are verified bills.
+Every line in the table above is a **modelled estimate requiring workload validation**, not a verified bill. The official AWS pricing pages are inputs to the model rather than confirmation of these workload-specific monthly amounts; none of the figures was reproduced in the AWS Pricing Calculator against the complete workload.
 
-The modelled infrastructure cost is $13,535 / 30,000,000 rides = **~$0.000451/ride**, or **~0.148 LKR/ride** at 328 LKR/USD. This is approximately **1.5%** of the 10 LKR ceiling. It is an architecture estimate, not a guaranteed AWS bill. AWS ap-south-1 regional prices, usage discounts, traffic patterns and FX must be verified: **Estimate — verify against current AWS pricing before final submission.**
+The modelled infrastructure cost is $13,535 / 30,000,000 rides = **~$0.000451/ride**, or **~0.148 LKR/ride** at 328 LKR/USD. This is approximately **1.5%** of the 10 LKR ceiling. It is an architecture estimate, not a guaranteed AWS bill. AWS ap-south-1 regional prices, usage discounts, traffic patterns and FX must be verified: **estimate only; verify against current AWS pricing before final submission.**
 
 ### 8.4 Instance sizing rationale
 
@@ -132,10 +132,10 @@ For OTP, assume approximately 500,000 monthly active riders, approximately 1 OTP
 
 | Scenario | LKR/ride | vs budget |
 |---|---|---|
-| Google Maps full, final team comparison scenario | ~63.6–64 | ~6.4x budget — **FAIL** |
-| Google Maps without Route Matrix | ~11.2 | ~1.1x budget — **FAIL** |
-| Self-hosted OSRM + 2 SMS/ride | ~2.15 | ~21.5% of budget — **PASS** |
-| Self-hosted OSRM + OTP-only SMS | ~0.17 | ~1.7% of budget — **PASS** |
+| Google Maps full, final team comparison scenario | ~63.6–64 | ~6.4x budget, **FAIL** |
+| Google Maps without Route Matrix | ~11.2 | ~1.1x budget, **FAIL** |
+| Self-hosted OSRM + 2 SMS/ride | ~2.15 | ~21.5% of budget, **PASS** |
+| Self-hosted OSRM + OTP-only SMS | ~0.17 | ~1.7% of budget, **PASS** |
 
 These are scenario estimates based on the assumptions in Appendix A. The key conclusion is that the 10 LKR budget is not the binding constraint after self-hosting routing and maps. Latency, burst handling and reliability are the stronger design constraints.
 
@@ -154,13 +154,13 @@ These are scenario estimates based on the assumptions in Appendix A. The key con
 | Serverless for lightweight asynchronous workloads where appropriate | Avoid idle capacity for small background jobs | Low to medium |
 | Single-region deployment | Keep one production footprint in ap-south-1 | Avoided multi-region duplication |
 
-**Storage tiering.** Keep the last 90 days hot in PostgreSQL. Export partitions older than 90 days nightly to S3 Standard-IA in Parquet, verify the export, and then drop the old PostgreSQL partition. Move data older than one year to S3 Glacier Instant Retrieval through the S3 lifecycle. At approximately 2 GB/day, trip records are approximately 730 GB/year. Monthly PostgreSQL partitions make dropping old data preferable to DELETE because it avoids unnecessary dead tuples and VACUUM pressure. Completed trips are immutable, so archival does not require CDC; existing Kafka trip events can feed analytics.
+**Storage tiering.** The tiering mechanism is specified in §6.3 and is not restated here. Its cost effect is what matters to this section: only the last 90 days of trip records stay on Multi-AZ PostgreSQL, and the remaining roughly 640 GB of the annual 730 GB sits on S3 Standard-IA or Glacier Instant Retrieval at a small fraction of the hot-storage rate. Without tiering, the RDS line item would grow by approximately 730 GB every year for data that is almost never read after its first week.
 
 ---
 
 ![](../diagrams/cost-01-breakdown.png){width=100%}
 
-**Figure 8 — Monthly infrastructure spend by component.** The model shows that routing, map tiles and egress are the dominant variable-cost categories.
+**Figure 8: monthly infrastructure spend by component.** The model shows that routing, map tiles and egress are the dominant variable-cost categories.
 
 <!-- DIAGRAM 8 | OWNER: M4 | FILE: diagrams/cost-01-breakdown.png
      Bar or pie of monthly spend. Makes the point that routing/egress/tiles

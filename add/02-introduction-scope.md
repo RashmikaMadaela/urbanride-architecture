@@ -10,7 +10,7 @@ UrbanRide is a ride-hailing platform connecting riders who need a journey with d
 provide one. This document specifies the backend that makes that connection: it must accept a
 ride request, identify nearby available drivers, rank them by realistic road-network travel time,
 assign exactly one of them, track the resulting trip through to completion, price it, and settle
-payment — while a continuous stream of GPS positions from every online driver keeps the view of
+payment, all while a continuous stream of GPS positions from every online driver keeps the view of
 the fleet current.
 
 Four constraints define the engineering problem. The platform must sustain **1,000,000 completed
@@ -41,7 +41,7 @@ requirements do not ask us to solve; the migration path is documented as future 
 The design assumes drivers report position every 4 seconds, that the average ride lasts
 approximately 20 minutes, and that a driver completes roughly 16 rides per working day. These
 assumptions propagate into every capacity figure in the document, so each is recorded with its
-status — verified, derived, or estimated — in Appendix A. Anything still unverified is marked as
+status (verified, derived, or estimated) in Appendix A. Anything still unverified is marked as
 such rather than presented as fact.
 
 On the cost constraint:
@@ -51,7 +51,7 @@ On the cost constraint:
 
 This interpretation is stated because the requirement is ambiguous and the ambiguity is material.
 Payment processing alone typically runs 2–3% of fare value, which on a 600 LKR fare is 12–18 LKR
-per ride — over the entire ceiling before a single server is provisioned. That is a cost of
+per ride, over the entire ceiling before a single server is provisioned. That is a cost of
 revenue rather than an architectural decision, and no backend design can remove it. The same
 wording is used in §8.1 so the interpretation appears identically wherever it is relied upon.
 
